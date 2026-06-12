@@ -1,1 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bot NucleoIT — Solicitud de Baja</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#0b141a;display:flex;align-items:center;justify-content:center;}
+  #app{width:100%;max-width:430px;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
 
+  /* SPLASH */
+  #splash{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    flex:1;padding:32px 24px;text-align:center;background:#111b21;animation:fadeIn .4s ease;
+  }
+  .splash-icon{font-size:56px;margin-bottom:14px;animation:pop .5s ease .1s both;}
+  .proto-badge{background:#25d366;color:white;font-size:9px;font-weight:800;letter-spacing:2px;padding:3px 11px;border-radius:10px;margin-bottom:20px;}
+  .splash-title{color:#e9edef;font-size:22px;font-weight:700;line-height:1.3;margin-bottom:12px;}
+  .splash-sub{color:#667781;font-size:13px;line-height:1.65;max-width:300px;margin-bottom:36px;}
+  .btn-start{background:#25d366;color:white;border:none;border-radius:26px;padding:14px 40px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 6px 24px rgba(37,211,102,.4);transition:transform .15s,box-shadow .15s;}
+  .btn-start:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(37,211,102,.5);}
+  .splash-footer{color:#2a3942;font-size:11px;margin-top:28px;}
+  .ai-badge{display:flex;align-items:center;gap:6px;margin-bottom:20px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.25);border-radius:20px;padding:5px 12px;}
+  .ai-dot{width:6px;height:6px;border-radius:50%;background:#25d366;animation:pulse 2s infinite;}
+  .ai-label{color:#25d366;font-size:11px;font-weight:700;letter-spacing:1px;}
+
+  /* CHAT */
+  #chat{display:none;flex-direction:column;height:100vh;height:100dvh;}
+  #chat.active{display:flex;animation:slideUp .35s ease;}
+
+  .wa-header{background:#202c33;padding:10px 14px 10px 12px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 6px rgba(0,0,0,.5);z-index:10;flex-shrink:0;}
+  .bot-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#25d366,#128c7e);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .bot-info{flex:1;min-width:0;}
+  .bot-name{color:#e9edef;font-weight:600;font-size:15px;}
+  .bot-status{color:#25d366;font-size:11px;font-weight:500;}
+  .bot-status.thinking{color:#8696a0;}
+  .header-badge{background:rgba(37,211,102,.1);color:#25d366;border:1px solid rgba(37,211,102,.35);font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 7px;border-radius:8px;white-space:nowrap;}
+  .btn-action{background:transparent;border:1px solid #2a3942;color:#667781;cursor:pointer;font-size:13px;border-radius:7px;padding:5px 8px;transition:all .15s;font-family:inherit;}
+  .btn-action:hover{border-color:#3b4a54;color:#8696a0;}
+
+  .wa-messages{flex:1;overflow-y:auto;padding:12px 12px 8px;scroll-behavior:smooth;}
+  .wa-messages::-webkit-scrollbar{width:4px;}
+  .wa-messages::-webkit-scrollbar-thumb{background:#2a3942;border-radius:2px;}
+
+  .sys-note{background:#182229;color:#667781;font-size:11px;text-align:center;padding:5px 14px;border-radius:8px;max-width:290px;margin:0 auto 14px;}
+  .ai-note{background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.15);color:#3b4a54;font-size:10px;text-align:center;padding:5px 12px;border-radius:8px;max-width:310px;margin:0 auto 12px;line-height:1.5;}
+
+  .msg-row{display:flex;margin-bottom:3px;animation:msgIn .25s ease;}
+  .msg-row.bot{justify-content:flex-start;}
+  .msg-row.user{justify-content:flex-end;}
+  .msg-bubble{max-width:80%;padding:8px 12px 5px;font-size:14px;line-height:1.5;color:#e9edef;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+  .msg-row.bot .msg-bubble{background:#202c33;border-radius:16px 16px 16px 3px;}
+  .msg-row.user .msg-bubble{background:#005c4b;border-radius:16px 16px 3px 16px;}
+  .msg-meta{display:flex;align-items:center;justify-content:flex-end;gap:3px;font-size:10px;color:#667781;margin-top:4px;}
+  .msg-ticks{color:#53bdeb;}
+
+  .typing-row{display:flex;justify-content:flex-start;margin-bottom:3px;}
+  .typing-bubble{background:#202c33;border-radius:16px 16px 16px 3px;padding:12px 14px;display:flex;gap:5px;align-items:center;}
+  .dot{width:7px;height:7px;border-radius:50%;background:#667781;animation:dotB 1.3s infinite ease-in-out;}
+  .dot:nth-child(2){animation-delay:.18s;}
+  .dot:nth-child(3){animation-delay:.36s;}
+
+  .err-bubble{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:#ff6b6b;font-size:12px;text-align:center;padding:8px 14px;border-radius:8px;max-width:300px;margin:8px auto;animation:msgIn .25s ease;}
+
+  .end-note{text-align:center;padding:16px 8px 8px;animation:fadeIn .3s ease;}
+  .end-divider{color:#2a3942;font-size:11px;margin-bottom:14px;}
+  .btn-restart-end{background:#1a2530;color:#25d366;border:1px solid rgba(37,211,102,.35);border-radius:20px;padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;font-family:inherit;}
+  .btn-restart-end:hover{background:#243240;}
+
+  .wa-input{background:#202c33;padding:8px 12px;display:flex;align-items:center;gap:8px;border-top:1px solid #2a3942;flex-shrink:0;}
+  .chat-input{flex:1;background:#2a3942;border:none;border-radius:22px;padding:11px 16px;color:#e9edef;font-size:14px;outline:none;font-family:inherit;}
+  .chat-input::placeholder{color:#4a5a64;}
+  .chat-input:disabled{opacity:.4;}
+  .btn-send{width:44px;height:44px;border-radius:50%;background:#25d366;border:none;cursor:pointer;font-size:15px;color:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
+  .btn-send:hover{background:#1fa855;}
+  .btn-send:disabled{background:#2a3942;cursor:default;}
+
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes msgIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+  @keyframes dotB{0%,80%,100%{transform:scale(.7);opacity:.4;}40%{transform:scale(1.15);opacity:1;}}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="splash">
+    <div class="splash-icon">💬</div>
+    <div class="ai-badge"><div class="ai-dot"></div><span class="ai-label">IA ACTIVA · CLAUDE</span></div>
+    <div class="proto-badge">PROTOTIPO FUNCIONAL</div>
+    <h1 class="splash-title">Simulador de Bot<br>Solicitud de Baja</h1>
+    <p class="splash-sub">Escribí libremente, como lo haría tu cliente. El bot interpreta la intención y sigue el flujo diseñado.</p>
+    <button class="btn-start" onclick="startChat()">▶ Iniciar simulación</button>
+    <div class="splash-footer">NucleoIT · GrupoCESA · Prototipo funcional</div>
+  </div>
+
+  <div id="chat">
+    <div class="wa-header">
+      <div class="bot-avatar">🤖</div>
+      <div class="bot-info">
+        <div class="bot-name">Bot NucleoIT</div>
+        <div class="bot-status" id="headerStatus">● en línea</div>
+      </div>
+      <span class="header-badge">IA · PROTO</span>
+      <button class="btn-action" onclick="restartChat()">↺</button>
+    </div>
+    <div class="wa-messages" id="messages">
+      <div class="sys-note">🔒 Mensajes cifrados de extremo a extremo</div>
+      <div class="ai-note">✦ Respuestas generadas por IA · Escribí con tus propias palabras</div>
+    </div>
+    <div class="wa-input">
+      <input class="chat-input" id="chatInput" type="text"
+        placeholder="Escribí un mensaje..."
+        autocomplete="off" autocorrect="off" spellcheck="false" />
+      <button class="btn-send" id="sendBtn" onclick="handleSend()">➤</button>
+    </div>
+  </div>
+
+</div>
+<script>
+/* ─────────────────────────────────────────
+   SYSTEM PROMPT — codifica el flujo del documento
+───────────────────────────────────────── */
+const SYSTEM = `Sos el asistente virtual de NucleoIT, empresa que provee software de gestión para negocios (restaurantes, locales comerciales, etc.).
+
+Tu función EXCLUSIVA es gestionar solicitudes de baja del servicio de abono mensual. Seguí el siguiente flujo de manera estricta.
+
+PERSONALIDAD:
+- Empático, cálido, en español rioplatense informal (usá "vos", "podés", "te")
+- Mensajes muy cortos: máximo 2-3 oraciones por respuesta
+- Estilo WhatsApp: directo, sin formalismos
+- Sin markdown, sin negritas, sin listas. Solo texto plano.
+
+FLUJO OBLIGATORIO:
+
+INICIO: Cuando el usuario manifiesta querer cancelar, darse de baja, o parar el abono, respondé:
+"Lamento mucho lo que nos comentás. ¿Podrías indicarnos el motivo de tu solicitud de baja?"
+
+IDENTIFICACIÓN DE MOTIVO — clasificá en:
+A) NO USA EL SISTEMA (no lo usa, no sabe usarlo, no lo aprovecha)
+B) PROBLEMAS CON EL ABONO (precio, costo, no puede pagar)
+C) OTRO (cualquier otro motivo)
+
+RAMA A — No usa el sistema:
+Preguntá: "¿Te gustaría que organicemos un curso de capacitación personalizado para que puedas aprovecharlo mejor?"
+→ Si acepta: "¡Perfecto! Podés agendar tu sesión aquí: calendly.com/nucleoit/capacitacion. Un especialista te va a estar esperando. ¡Hasta pronto! 😊" → FIN
+→ Si rechaza: ir a OFERTA DE DESCUENTO
+
+RAMA B — Problemas con el abono:
+Ir directamente a OFERTA DE DESCUENTO.
+
+RAMA C — Otro motivo:
+Si no explicó el motivo, preguntá: "¿Podrías contarnos cuál es el motivo?"
+Luego: "Gracias por compartirnos eso. Valentina de nuestro equipo se va a comunicar con vos a la brevedad. 😊" → FIN
+
+OFERTA DE DESCUENTO:
+"Para que puedas seguir aprovechando el sistema, queremos ofrecerte un 30% de descuento durante 4 meses. ¿Te parece bien?"
+→ Si acepta: "¡Excelente! 🎉 El descuento se va a aplicar en tu próxima factura. Ya notificamos al área de administración. ¡Gracias por seguir con nosotros!" → FIN
+→ Si rechaza o contraoferta: "Entendemos. Un operador se va a comunicar con vos a la brevedad para ver cómo podemos ayudarte. Gracias por habernos elegido. 🙏" → FIN
+
+REGLAS:
+- Si el usuario dice que el descuento le parece poco o pide más, tratalo como rechazo y derivá al operador
+- Si el usuario escribe algo fuera del tema, respondé: "Por este canal solo puedo ayudarte con solicitudes de baja. ¿Querés continuar con eso?"
+- Una vez en FIN, cerrá la conversación cordialmente y no continúes el flujo
+- Máximo 3 oraciones por mensaje, nunca uses markdown`;
+
+/* ─────────────────────────────────────────
+   PROXY URL — Netlify Function (sin API key en el cliente)
+───────────────────────────────────────── */
+const PROXY_URL = '/.netlify/functions/anthropic-proxy';
+
+/* ─────────────────────────────────────────
+   STATE
+───────────────────────────────────────── */
+let history = [];
+let busy    = false;
+
+/* ─────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────── */
+function getTime(){
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function scrollBottom(){
+  const m = document.getElementById('messages');
+  requestAnimationFrame(() => m.scrollTop = m.scrollHeight);
+}
+
+function addMsg(from, text){
+  const m   = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = `msg-row ${from}`;
+  const ticks = from === 'user' ? '<span class="msg-ticks">✓✓</span>' : '';
+  row.innerHTML = `<div class="msg-bubble"><div>${text.replace(/\n/g,'<br>')}</div><div class="msg-meta">${getTime()} ${ticks}</div></div>`;
+  m.appendChild(row);
+  scrollBottom();
+}
+
+function showErr(msg){
+  const m   = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'err-bubble';
+  div.textContent = '⚠ ' + msg;
+  m.appendChild(div);
+  scrollBottom();
+}
+
+function showTyping(){
+  const m   = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'typing-row'; row.id = 'typ';
+  row.innerHTML = `<div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  m.appendChild(row);
+  scrollBottom();
+  const s = document.getElementById('headerStatus');
+  s.textContent = '● escribiendo...'; s.className = 'bot-status thinking';
+}
+
+function hideTyping(){
+  const t = document.getElementById('typ');
+  if(t) t.remove();
+  const s = document.getElementById('headerStatus');
+  s.textContent = '● en línea'; s.className = 'bot-status';
+}
+
+function setEnabled(on){
+  document.getElementById('chatInput').disabled = !on;
+  document.getElementById('sendBtn').disabled   = !on;
+}
+
+/* ─────────────────────────────────────────
+   API CALL — vía proxy Netlify
+───────────────────────────────────────── */
+async function callBot(userText){
+  history.push({ role: 'user', content: userText });
+
+  showTyping();
+
+  try {
+    const resp = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        system: SYSTEM,
+        messages: history
+      })
+    });
+
+    const data = await resp.json();
+
+    if(!resp.ok){
+      hideTyping();
+      showErr(data.error?.message || `Error ${resp.status} — intentá de nuevo.`);
+      history.pop();
+      return;
+    }
+
+    const botText = data.content?.find(c => c.type === 'text')?.text || '...';
+    hideTyping();
+    addMsg('bot', botText);
+    history.push({ role: 'assistant', content: botText });
+
+  } catch(err){
+    hideTyping();
+    showErr('Sin conexión. Verificá tu red e intentá de nuevo.');
+    history.pop();
+  }
+}
+
+/* ─────────────────────────────────────────
+   SEND
+───────────────────────────────────────── */
+async function handleSend(){
+  if(busy) return;
+  const inp  = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if(!text) return;
+
+  inp.value = '';
+  busy = true;
+  setEnabled(false);
+
+  addMsg('user', text);
+  await callBot(text);
+
+  busy = false;
+  setEnabled(true);
+  inp.focus();
+}
+
+/* ─────────────────────────────────────────
+   INIT / RESTART
+───────────────────────────────────────── */
+function startChat(){
+  document.getElementById('splash').style.display = 'none';
+  const chat = document.getElementById('chat');
+  chat.classList.add('active');
+  chat.style.display = 'flex';
+
+  document.getElementById('chatInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); handleSend(); }
+  });
+
+  // Mensaje inicial del bot
+  showTyping();
+  setTimeout(async () => {
+    hideTyping();
+    const greeting = '¡Hola! Soy el asistente de NucleoIT. ¿En qué puedo ayudarte hoy?';
+    addMsg('bot', greeting);
+    history.push({ role: 'assistant', content: greeting });
+    setEnabled(true);
+    document.getElementById('chatInput').focus();
+  }, 1200);
+}
+
+function restartChat(){
+  history = [];
+  busy    = false;
+  document.getElementById('messages').innerHTML = `
+    <div class="sys-note">🔒 Mensajes cifrados de extremo a extremo</div>
+    <div class="ai-note">✦ Respuestas generadas por IA · Escribí con tus propias palabras</div>`;
+  document.getElementById('headerStatus').textContent = '● en línea';
+  document.getElementById('headerStatus').className   = 'bot-status';
+  setEnabled(false);
+
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    const greeting = '¡Hola! Soy el asistente de NucleoIT. ¿En qué puedo ayudarte hoy?';
+    addMsg('bot', greeting);
+    history.push({ role: 'assistant', content: greeting });
+    setEnabled(true);
+    document.getElementById('chatInput').focus();
+  }, 1000);
+}
+</script>
+</body>
+</html>
