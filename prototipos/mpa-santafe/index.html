@@ -4,343 +4,351 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Asistente Virtual MPA — Santa Fe</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:           #0b141a;
-      --header:       #202c33;
-      --bubble-bot:   #202c33;
-      --bubble-user:  #005c4b;
-      --input-bar:    #202c33;
-      --input-field:  #2a3942;
-      --btn-bg:       #1a2530;
-      --btn-border:   #2a3942;
-      --btn-text:     #00a884;
-      --text:         #e9edef;
-      --text-dim:     #8696a0;
-      --tick:         #53bdeb;
-      --online:       #25d366;
-      --accent:       #00a884;
-      --accent-dark:  #008f6f;
-      --proto-badge:  #e85d04;
+      --bg:          #0b141a;
+      --header:      #202c33;
+      --bot-bubble:  #202c33;
+      --usr-bubble:  #005c4b;
+      --input-bar:   #202c33;
+      --input-field: #2a3942;
+      --text:        #e9edef;
+      --text-dim:    #8696a0;
+      --tick:        #53bdeb;
+      --online:      #25d366;
+      --accent:      #00a884;
+      --accent-dk:   #008f6f;
+      --badge:       #e85d04;
     }
 
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: #060d11;
-      height: 100dvh;
-      overflow: hidden;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    html, body { margin: 0; padding: 0; background: #060d11; font-family: 'Inter', sans-serif; color: var(--text); }
 
-    /* Contenedor centrado — ancho de celular en desktop */
+    /* Contenedor principal — fixed, siempre ocupa la pantalla completa */
     #app {
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
       width: 100%;
       max-width: 480px;
       height: 100dvh;
-      position: relative;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 32px 80px rgba(0,0,0,.6);
+      background: var(--bg);
     }
-
     @media (min-width: 500px) {
-      #app { height: 92dvh; border-radius: 16px; }
-      body { background: #060d11; }
+      #app {
+        top: 50%;
+        transform: translate(-50%, -50%);
+        height: 92dvh;
+        border-radius: 16px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 32px 80px rgba(0,0,0,.6);
+      }
     }
 
-    /* Badge — siempre visible */
-    .proto-badge {
-      position: absolute;
-      top: 10px; right: 10px;
-      background: var(--proto-badge);
-      color: #fff;
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 1.5px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      z-index: 9999;
-      text-transform: uppercase;
+    /* Badge siempre visible */
+    .badge {
+      position: absolute; top: 10px; right: 10px; z-index: 9999;
+      background: var(--badge); color: #fff;
+      font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+      padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
       pointer-events: none;
-      box-shadow: 0 2px 8px rgba(232,93,4,.4);
     }
 
-    /* Pantallas */
-    .screen { display: none; flex-direction: column; height: 100%; width: 100%; position: absolute; top: 0; left: 0; }
-    .screen.active { display: flex; }
-
-    /* ── SPLASH ── */
-    #splash {
-      background: linear-gradient(180deg, #0d1f2b 0%, #0b141a 100%);
-      align-items: center; justify-content: center;
-      padding: 32px 24px; overflow-y: auto; gap: 0;
-    }
-
-    .splash-shield {
-      width: 88px; height: 88px;
-      background: linear-gradient(145deg, #1a6fa8, #0d4f7c);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 8px 32px rgba(13,79,124,.5);
+    /* ── PANTALLAS ── */
+    /* Cada pantalla ocupa el #app completo */
+    .screen {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
       flex-shrink: 0;
     }
+    .screen.on { display: flex; }
 
-    .splash-eyebrow {
+    /* ════════════════════════════
+       SPLASH
+    ════════════════════════════ */
+    #splash {
+      background: linear-gradient(180deg, #0d1f2b 0%, #0b141a 100%);
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      overflow-y: auto;
+      gap: 0;
+    }
+
+    .sp-shield {
+      width: 88px; height: 88px; flex-shrink: 0;
+      background: linear-gradient(145deg,#1a6fa8,#0d4f7c);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 18px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 8px 32px rgba(13,79,124,.5);
+    }
+    .sp-eyebrow {
       font-size: 10px; font-weight: 600; letter-spacing: 2.5px;
       color: var(--text-dim); text-transform: uppercase;
       text-align: center; margin-bottom: 6px;
     }
-    .splash-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 4px; line-height: 1.2; }
-    .splash-province { font-size: 13px; color: var(--accent); text-align: center; margin-bottom: 28px; font-weight: 500; }
+    .sp-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+    .sp-sub   { font-size: 13px; color: var(--accent); text-align: center; margin-bottom: 24px; font-weight: 500; }
 
-    .splash-card {
+    .sp-card {
       background: #111c24; border: 1px solid #1e2d38;
-      border-radius: 14px; padding: 18px 16px;
-      width: 100%; max-width: 360px; margin-bottom: 24px;
+      border-radius: 14px; padding: 16px;
+      width: 100%; max-width: 360px; margin-bottom: 22px;
     }
-    .splash-card-title {
+    .sp-card-title {
       font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-      color: var(--accent); text-transform: uppercase; margin-bottom: 14px;
+      color: var(--accent); text-transform: uppercase; margin-bottom: 12px;
     }
-    .flow-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; }
-    .flow-row:last-child { margin-bottom: 0; }
-    .flow-icon { font-size: 17px; flex-shrink: 0; margin-top: 1px; width: 22px; text-align: center; }
-    .flow-label { font-size: 13px; color: #aebac1; line-height: 1.45; }
+    .sp-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .sp-row:last-child { margin-bottom: 0; }
+    .sp-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; margin-top: 1px; }
+    .sp-lbl  { font-size: 13px; color: #aebac1; line-height: 1.4; }
 
-    .btn-primary {
+    .btn-start {
       background: var(--accent); color: #fff; border: none;
-      border-radius: 26px; padding: 15px 0;
-      font-size: 15px; font-weight: 600; cursor: pointer;
-      width: 100%; max-width: 360px;
-      transition: background .2s; letter-spacing: .2px;
+      border-radius: 26px; padding: 14px 0; font-size: 15px; font-weight: 600;
+      cursor: pointer; width: 100%; max-width: 360px;
+      transition: background .2s;
     }
-    .btn-primary:hover  { background: var(--accent-dark); }
-    .btn-primary:active { transform: scale(.98); }
+    .btn-start:hover { background: var(--accent-dk); }
 
-    .splash-dev {
-      margin-top: 28px;
-      display: flex; flex-direction: column; align-items: center; gap: 6px;
-    }
-    .splash-dev-label {
-      font-size: 9px; font-weight: 600; letter-spacing: 2px;
-      color: #3d5462; text-transform: uppercase;
-    }
-    .splash-dev-name {
-      font-size: 12px; font-weight: 600; color: #3d5462; letter-spacing: 1px;
-    }
+    .sp-dev { margin-top: 24px; text-align: center; }
+    .sp-dev-lbl  { font-size: 9px; font-weight: 600; letter-spacing: 2px; color: #3d5462; text-transform: uppercase; margin-bottom: 4px; }
+    .sp-dev-name { font-size: 12px; font-weight: 600; color: #3d5462; letter-spacing: 1px; }
 
-    /* ── CHAT ── */
-    #chat { position: relative; background: var(--bg); }
+    /* ════════════════════════════
+       CHAT
+    ════════════════════════════ */
+    #chat { background: var(--bg); }
 
-    .chat-wallpaper {
-      position: absolute; inset: 56px 0 0 0;
+    /* Fondo punteado detrás de los mensajes */
+    .wlp {
+      position: absolute; inset: 56px 0 0 0; pointer-events: none; z-index: 0;
       background-image: radial-gradient(circle, rgba(255,255,255,.025) 1px, transparent 1px);
       background-size: 28px 28px;
-      pointer-events: none; z-index: 0;
     }
 
-    .chat-header {
+    /* Header */
+    .ch-header {
       background: var(--header);
-      display: flex; align-items: center;
-      padding: 10px 14px; gap: 10px;
-      position: relative; z-index: 10; flex-shrink: 0;
-      height: 56px; border-bottom: 1px solid rgba(255,255,255,.04);
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 14px; height: 56px; flex-shrink: 0;
+      position: relative; z-index: 10;
+      border-bottom: 1px solid rgba(255,255,255,.04);
     }
-
-    .header-avatar {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: linear-gradient(145deg, #1a6fa8, #0d4f7c);
+    .ch-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(145deg,#1a6fa8,#0d4f7c);
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700; color: #fff; letter-spacing: .5px;
-      flex-shrink: 0; box-shadow: 0 0 0 1px rgba(255,255,255,.1);
+      font-size: 12px; font-weight: 700; letter-spacing: .5px;
     }
-
-    .header-text { flex: 1; min-width: 0; }
-    .header-name { font-size: 15px; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .header-status { font-size: 12px; color: var(--online); transition: color .3s; }
-    .header-status.typing { color: var(--text-dim); }
-
-    .btn-icon {
-      background: transparent; border: none; color: var(--text-dim);
-      cursor: pointer; width: 36px; height: 36px; border-radius: 50%;
+    .ch-info { flex: 1; min-width: 0; }
+    .ch-name { font-size: 15px; font-weight: 600; line-height: 1.2; }
+    .ch-status { font-size: 12px; color: var(--online); }
+    .ch-status.typing { color: var(--text-dim); }
+    .btn-reset {
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; transition: background .15s; flex-shrink: 0;
+      transition: background .15s; flex-shrink: 0;
     }
-    .btn-icon:hover { background: rgba(255,255,255,.07); }
+    .btn-reset:hover { background: rgba(255,255,255,.07); }
 
-    .messages {
-      flex: 1; overflow-y: auto;
+    /* Mensajes — ocupa todo el espacio disponible */
+    .msgs {
+      flex: 1;
+      overflow-y: auto;
       padding: 12px 14px 8px;
       display: flex; flex-direction: column; gap: 3px;
-      position: relative; z-index: 1; scroll-behavior: smooth;
+      position: relative; z-index: 1;
     }
-    .messages::-webkit-scrollbar { width: 3px; }
-    .messages::-webkit-scrollbar-thumb { background: #2a3942; border-radius: 2px; }
+    .msgs::-webkit-scrollbar { width: 3px; }
+    .msgs::-webkit-scrollbar-thumb { background: #2a3942; border-radius: 2px; }
 
-    .date-chip { text-align: center; margin: 6px 0 10px; flex-shrink: 0; }
+    .date-chip { text-align: center; margin: 4px 0 10px; }
     .date-chip span {
       background: #182229; color: var(--text-dim);
       font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 8px;
     }
 
     .msg { display: flex; flex-direction: column; max-width: 82%; animation: fadeUp .18s ease both; }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
     .msg.bot  { align-self: flex-start; }
-    .msg.user { align-self: flex-end; }
+    .msg.usr  { align-self: flex-end; }
     .msg.sys  { align-self: center; max-width: 92%; }
 
-    .bubble { padding: 8px 12px; font-size: 14.5px; line-height: 1.52; word-break: break-word; }
-
-    .msg.bot .bubble  { background: var(--bubble-bot);  border-radius: 2px 14px 14px 14px; color: var(--text); }
-    .msg.user .bubble { background: var(--bubble-user); border-radius: 14px 14px 2px 14px; color: var(--text); }
-    .msg.sys .bubble  {
-      background: rgba(0,168,132,.1); border: 1px solid rgba(0,168,132,.25);
-      border-radius: 10px; color: #7dd3b8; font-size: 12px; text-align: center; padding: 6px 14px;
+    .bubble {
+      padding: 8px 12px; font-size: 14.5px; line-height: 1.52; word-break: break-word;
     }
-    .msg.emergency .bubble { background: rgba(255,107,107,.1); border: 1px solid rgba(255,107,107,.3); color: #ffaaaa; }
+    .msg.bot .bubble {
+      background: var(--bot-bubble); color: var(--text);
+      border-radius: 2px 14px 14px 14px;
+    }
+    .msg.usr .bubble {
+      background: var(--usr-bubble); color: var(--text);
+      border-radius: 14px 14px 2px 14px;
+    }
+    .msg.sys .bubble {
+      background: rgba(0,168,132,.1); border: 1px solid rgba(0,168,132,.25);
+      border-radius: 10px; color: #7dd3b8; font-size: 12px;
+      text-align: center; padding: 6px 14px;
+    }
+    .msg.sos .bubble {
+      background: rgba(255,107,107,.1); border: 1px solid rgba(255,107,107,.3);
+      border-radius: 10px; color: #ffaaaa; font-size: 12px;
+      text-align: center; padding: 6px 14px;
+    }
+    .bubble a { color: var(--tick); text-decoration: none; border-bottom: 1px solid rgba(83,189,235,.4); }
 
-    .bubble a { color: var(--tick); text-decoration: none; border-bottom: 1px solid rgba(83,189,235,.4); word-break: break-all; }
-    .bubble a:hover { border-bottom-color: var(--tick); }
+    .meta { display: flex; align-items: center; gap: 3px; justify-content: flex-end; margin-top: 3px; }
+    .meta-time { font-size: 11px; color: var(--text-dim); }
+    .ticks { font-size: 13px; color: var(--tick); }
 
-    .msg-meta { display: flex; align-items: center; gap: 3px; margin-top: 3px; justify-content: flex-end; }
-    .msg-time { font-size: 11px; color: var(--text-dim); }
-    .ticks { color: var(--tick); font-size: 13px; line-height: 1; }
-
-    .typing-wrap { align-self: flex-start; display: none; }
-    .typing-wrap.show { display: flex; }
-    .typing-bubble { background: var(--bubble-bot); border-radius: 2px 14px 14px 14px; padding: 12px 16px; display: flex; align-items: center; gap: 5px; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); animation: pulse 1.3s infinite ease; }
+    /* Typing */
+    .typing { align-self: flex-start; display: none; }
+    .typing.on { display: flex; }
+    .typing-bub {
+      background: var(--bot-bubble); border-radius: 2px 14px 14px 14px;
+      padding: 12px 16px; display: flex; align-items: center; gap: 5px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); animation: blink 1.3s infinite; }
     .dot:nth-child(2) { animation-delay: .22s; }
     .dot:nth-child(3) { animation-delay: .44s; }
-    @keyframes pulse { 0%,75%,100% { transform:translateY(0); opacity:.4; } 38% { transform:translateY(-6px); opacity:1; } }
+    @keyframes blink { 0%,75%,100% { opacity:.35; transform:none; } 38% { opacity:1; transform:translateY(-5px); } }
 
-
-
+    /* Input bar — siempre al fondo */
     .input-bar {
-      background: var(--input-bar); padding: 8px 12px;
-      display: flex; align-items: flex-end; gap: 8px;
-      flex-shrink: 0; position: relative; z-index: 10;
-      border-top: 1px solid rgba(255,255,255,.03);
+      background: var(--input-bar);
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      position: relative; z-index: 10;
+      border-top: 1px solid rgba(255,255,255,.04);
     }
-    .input-pill {
-      flex: 1; background: var(--input-field); border-radius: 22px;
-      display: flex; align-items: flex-end; padding: 6px 16px; min-height: 44px;
+    .input-wrap {
+      flex: 1; min-width: 0;
+      background: var(--input-field);
+      border-radius: 22px;
+      display: flex; align-items: center;
+      padding: 0 16px;
+      min-height: 44px;
     }
-    #msg-input {
-      flex: 1; background: transparent; border: none; outline: none;
+    #txt {
+      flex: 1; background: none; border: none; outline: none;
       color: var(--text); font-size: 15px; font-family: 'Inter', sans-serif;
-      resize: none; max-height: 110px; overflow-y: auto;
-      line-height: 1.45; padding: 5px 0;
+      resize: none; overflow-y: auto;
+      line-height: 1.45; padding: 11px 0;
+      max-height: 100px;
     }
-    #msg-input::placeholder { color: var(--text-dim); }
+    #txt::placeholder { color: var(--text-dim); }
 
     .btn-send {
-      width: 46px; height: 46px; border-radius: 50%;
-      background: var(--accent); border: none; color: #fff;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: background .15s, transform .1s;
+      width: 44px; height: 44px; min-width: 44px; border-radius: 50%;
+      background: var(--accent); border: none; color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background .15s;
       box-shadow: 0 2px 8px rgba(0,168,132,.3);
     }
-    .btn-send:hover  { background: var(--accent-dark); }
-    .btn-send:active { transform: scale(.93); }
-    .btn-send:disabled { background: #2a3942; box-shadow: none; cursor: not-allowed; }
+    .btn-send:hover   { background: var(--accent-dk); }
+    .btn-send:active  { transform: scale(.93); }
+    .btn-send:disabled { background: #2a3942; box-shadow: none; cursor: default; }
 
     ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #2a3942; border-radius: 3px; }
   </style>
 </head>
 <body>
-
-<div class="proto-badge">PROTOTIPO</div>
-
 <div id="app">
+  <div class="badge">PROTOTIPO</div>
 
-<!-- ═══════ SPLASH ═══════ -->
-<div id="splash" class="screen active">
-  <div class="splash-shield">
-    <svg width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M23 4L7 11.5V23C7 32.5 14.2 41.3 23 44C31.8 41.3 39 32.5 39 23V11.5L23 4Z"
-            fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.7)" stroke-width="1.4"/>
-      <path d="M16 23.5L21 28.5L31 18" stroke="white" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
-
-  <div class="splash-eyebrow">Provincia de Santa Fe</div>
-  <div class="splash-title">Asistente Virtual MPA</div>
-  <div class="splash-province">Ministerio Público de la Acusación</div>
-
-  <div class="splash-card">
-    <div class="splash-card-title">¿En qué puedo orientarle?</div>
-    <div class="flow-row"><div class="flow-icon">📋</div><div class="flow-label">Cómo realizar una denuncia, de forma online o presencial</div></div>
-    <div class="flow-row"><div class="flow-icon">⚖️</div><div class="flow-label">Estado de causas judiciales para víctimas de delitos (Portal Muninn)</div></div>
-    <div class="flow-row"><div class="flow-icon">👩‍⚖️</div><div class="flow-label">Acceso y consulta para abogados y profesionales (Portal Huginn)</div></div>
-    <div class="flow-row"><div class="flow-icon">🛡️</div><div class="flow-label">Orientación y acompañamiento en situaciones de violencia de género</div></div>
-    <div class="flow-row"><div class="flow-icon">🏛️</div><div class="flow-label">Consultas sobre servicios e información del organismo</div></div>
-  </div>
-
-  <button class="btn-primary" onclick="launchChat()">Iniciar conversación</button>
-
-  <div class="splash-dev">
-    <div class="splash-dev-label">Desarrollado por</div>
-    <div class="splash-dev-name">ALTEOR SRL</div>
-  </div>
-</div>
-
-<!-- ═══════ CHAT ═══════ -->
-<div id="chat" class="screen">
-  <div class="chat-wallpaper"></div>
-
-  <div class="chat-header">
-    <div class="header-avatar">MPA</div>
-    <div class="header-text">
-      <div class="header-name">Asistente MPA</div>
-      <div class="header-status" id="hdr-status">en línea</div>
-    </div>
-    <button class="btn-icon" onclick="resetChat()" title="Reiniciar conversación">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="1 4 1 10 7 10"/>
-        <path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
+  <!-- ════ SPLASH ════ -->
+  <div id="splash" class="screen on">
+    <div class="sp-shield">
+      <svg width="46" height="46" viewBox="0 0 46 46" fill="none">
+        <path d="M23 4L7 11.5V23C7 32.5 14.2 41.3 23 44C31.8 41.3 39 32.5 39 23V11.5L23 4Z"
+              fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.7)" stroke-width="1.4"/>
+        <path d="M16 23.5L21 28.5L31 18" stroke="white" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-    </button>
+    </div>
+    <div class="sp-eyebrow">Provincia de Santa Fe</div>
+    <div class="sp-title">Asistente Virtual MPA</div>
+    <div class="sp-sub">Ministerio Público de la Acusación</div>
+    <div class="sp-card">
+      <div class="sp-card-title">¿En qué puedo orientarle?</div>
+      <div class="sp-row"><div class="sp-icon">📋</div><div class="sp-lbl">Cómo realizar una denuncia, de forma online o presencial</div></div>
+      <div class="sp-row"><div class="sp-icon">⚖️</div><div class="sp-lbl">Estado de causas judiciales para víctimas (Portal Muninn)</div></div>
+      <div class="sp-row"><div class="sp-icon">👩‍⚖️</div><div class="sp-lbl">Acceso para abogados y profesionales (Portal Huginn)</div></div>
+      <div class="sp-row"><div class="sp-icon">🛡️</div><div class="sp-lbl">Orientación en situaciones de violencia de género</div></div>
+      <div class="sp-row"><div class="sp-icon">🏛️</div><div class="sp-lbl">Consultas sobre servicios del organismo</div></div>
+    </div>
+    <button class="btn-start" onclick="startChat()">Iniciar conversación</button>
+    <div class="sp-dev">
+      <div class="sp-dev-lbl">Desarrollado por</div>
+      <div class="sp-dev-name">ALTEOR SRL</div>
+    </div>
   </div>
 
-  <div class="messages" id="messages">
-    <div class="date-chip"><span id="date-label"></span></div>
-    <div class="typing-wrap" id="typing">
-      <div class="typing-bubble">
-        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  <!-- ════ CHAT ════ -->
+  <div id="chat" class="screen">
+    <div class="wlp"></div>
+
+    <div class="ch-header">
+      <div class="ch-avatar">MPA</div>
+      <div class="ch-info">
+        <div class="ch-name">Asistente MPA</div>
+        <div class="ch-status" id="status">en línea</div>
+      </div>
+      <button class="btn-reset" onclick="resetChat()" title="Reiniciar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="msgs" id="msgs">
+      <div class="date-chip"><span id="date-lbl"></span></div>
+      <div class="typing" id="typing">
+        <div class="typing-bub">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-
-    <div class="input-pill">
-      <textarea id="msg-input" placeholder="Escribí un mensaje..." rows="1"></textarea>
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea id="txt" placeholder="Escribí un mensaje..." rows="1"></textarea>
+      </div>
+      <button class="btn-send" id="btn-send" onclick="send()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+      </button>
     </div>
-    <button class="btn-send" id="btn-send" onclick="send()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-      </svg>
-    </button>
   </div>
-</div>
+
+</div><!-- /#app -->
 
 <script>
 /* ── ESTADO ── */
 let history = [];
 let busy    = false;
 
-/* ── SYSTEM PROMPT (con base de conocimiento real) ── */
-const SYSTEM = `Sos el asistente virtual del Ministerio Público de la Acusación (MPA) de la Provincia de Santa Fe, Argentina.
+/* ── SYSTEM PROMPT ── */
+const SYS = `Sos el asistente virtual del Ministerio Público de la Acusación (MPA) de la Provincia de Santa Fe, Argentina.
 
 Tu función es orientar a ciudadanos, víctimas de delitos y profesionales que necesiten acceder a los servicios del organismo. Solo respondés sobre los temas que se detallan en estas instrucciones. Si te preguntan algo que no está cubierto aquí, decí que no tenés esa información disponible y ofrecé los canales de contacto del MPA. Nunca inventes datos, procedimientos, nombres, teléfonos ni URLs que no figuren explícitamente en estas instrucciones.
 
@@ -355,160 +363,131 @@ Formato: NUNCA uses asteriscos, negritas, guiones de lista, corchetes ni ningún
 PELIGRO INMEDIATO — PRIORIDAD ABSOLUTA:
 Si la persona describe una situación de peligro en curso, agresión activa, amenazas directas, o expresa que teme por su vida o integridad en este momento, tu primera y única respuesta es indicar que llame al 911 ahora. Nada más. No des información adicional hasta que la persona confirme que está a salvo.
 
-═══════════════════════════════════
-FLUJO 1 — DENUNCIA ONLINE
-═══════════════════════════════════
-La denuncia online está disponible las 24 horas los 365 días del año en mpa.santafe.gov.ar/denuncias
+FLUJO 1 — DENUNCIA ONLINE:
+Disponible 24hs en mpa.santafe.gov.ar/denuncias
+Proceso en 5 pasos:
+1. Elegí el delito que vas a denunciar.
+2. Brindá tus datos personales y cargá tu DNI (podés denunciar igualmente si no lo tenés).
+3. Describí el hecho. Podés adjuntar fotos, videos y/o audios.
+4. Completá los datos de la persona denunciada (podés continuar si no los sabés).
+5. Revisá y enviá la denuncia.
+Después: recibirás copia por email. La Fiscalía Regional correspondiente asignará un fiscal y se comunicará para informar los pasos a seguir.
+Contacto de Fiscalías Regionales:
+Fiscalía General Santa Fe: 1° de Mayo 2417, tel +54 342 4572535/36, fiscaliageneral@mpa.santafe.gov.ar
+Fiscalía Regional 1 Santa Fe: General E. López 3302, tel +54 342 4585540, fr1@mpa.santafe.gov.ar
+Fiscalía Regional 2 Rosario: Sarmiento 2850, tel +54 341 4861200, fr2@mpa.santafe.gov.ar
+Fiscalía Regional 3 Venado Tuerto: Mitre 643, tel +54 3462 463342, fr3@mpa.santafe.gov.ar
+Fiscalía Regional 4 Reconquista: Lucas Funes 1671, tel +54 3482 439100, fr4@mpa.santafe.gov.ar
+Fiscalía Regional 5 Rafaela: Necochea 443, tel +54 3492 453562, fr5@mpa.santafe.gov.ar
 
-El proceso tiene 5 pasos:
-Paso 1: Elegí el delito que vas a denunciar.
-Paso 2: Brindá tus datos personales y cargá tu DNI. Si no lo tenés, podés denunciar igualmente.
-Paso 3: Describí el hecho del que fuiste víctima. Podés adjuntar fotos, videos y/o audios.
-Paso 4: Completá los datos de la persona a la que vas a denunciar. Podés continuar si no los sabés.
-Paso 5: Revisá la información y enviá la denuncia.
-
-Qué pasa después: recibirás una copia en tu correo electrónico. La denuncia se tramitará en la Fiscalía Regional que corresponda por jurisdicción y se le asignará un fiscal para investigar. La Fiscalía se comunicará oportunamente para informar los pasos a seguir.
-
-Contactos de las Fiscalías Regionales para dudas:
-Fiscalía General (Santa Fe): 1° de Mayo 2417, teléfono +54 342 4572535/36, fiscaliageneral@mpa.santafe.gov.ar
-Fiscalía Regional 1 - Santa Fe: General E. López 3302, teléfono +54 342 4585540, fr1@mpa.santafe.gov.ar
-Fiscalía Regional 2 - Rosario: Sarmiento 2850, teléfono +54 341 4861200, fr2@mpa.santafe.gov.ar
-Fiscalía Regional 3 - Venado Tuerto: Mitre 643, teléfono +54 3462 463342, fr3@mpa.santafe.gov.ar
-Fiscalía Regional 4 - Reconquista: Lucas Funes 1671, teléfono +54 3482 439100, fr4@mpa.santafe.gov.ar
-Fiscalía Regional 5 - Rafaela: Necochea 443, teléfono +54 3492 453562, fr5@mpa.santafe.gov.ar
-
-Si se trata de una emergencia, comunicarse con el 911.
-
-═══════════════════════════════════
-FLUJO 2 — DENUNCIA PRESENCIAL (Centros de Denuncias)
-═══════════════════════════════════
-Cuando el usuario quiera hacer una denuncia presencial, preguntale en qué ciudad o zona se encuentra y luego brindá los datos del centro más cercano de la lista que sigue. Si hay varios centros en una ciudad, mencioná el más cercano según la zona que describa y ofrecé los otros. También podés denunciar en la comisaría más cercana a tu domicilio.
-
-Correo general de los Centros de Denuncias: direccionctd@santafe.gov.ar
+FLUJO 2 — DENUNCIA PRESENCIAL:
+Preguntá en qué ciudad o zona se encuentra el usuario y brindá el centro más cercano de esta lista. También puede denunciar en la comisaría más cercana. Correo general: direccionctd@santafe.gov.ar
 
 ROSARIO Y ALREDEDORES:
-CD Nº1 Mendoza: Mendoza 3538, tel (0341) 4724568, ctdrosario1@santafe.gov.ar, lunes a viernes 8 a 19h, sábados 9 a 12h
-CD Nº2 COP: Crespo 4700, tel (0341) 4772581, ctdrosario2@santafe.gov.ar, lunes a viernes 8 a 18h
-CD Nº3 Noroeste: Av. Provincias Unidas 150 BIS (Distrito Municipal), tel (0341) 4727555/56, ctdrosario3@santafe.gov.ar, lunes a viernes 8 a 18h
-CD Nº4 Sur: Av. Uriburu 637, tel (0341) 4809890 int 443, ctdrosario4@santafe.gov.ar, lunes a viernes 8 a 18h
-CD Nº7 CAJ: Corrientes 2114, tel (0341) 4818686, ctdrosario7@santafe.gov.ar, lunes a viernes 8 a 19h
-CD Nº6 Funes: Tomás de la Torre 1725, tel (0341) 4930298, ctdrosario6@santafe.gov.ar, lunes a viernes 7:30 a 12h
-CD Nº8 Armstrong: Ruta 9 y Crucianelli (Terminal de Ómnibus), tel (03471) 490419, ctdamstrong@santafe.gov.ar, lunes a viernes 7 a 13h
-CD Nº9 Pérez: 9 de Julio 804, tel (0341) 5263189, ctdperez@santafe.gov.ar, lunes a viernes 8 a 19h
-CD Nº10 Fray Luis Beltrán: Pte. Perón 001 esq. Av. San Martín, ctdfrayluisbeltran@santafe.gov.ar, lunes a viernes 7:30 a 13h
-CD Nº11 Roldán: Mitre 139, tel (0341) 4962008, ctdroldan@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Nº12 Villa Gobernador Gálvez: Bomberos Voluntarios 2013, tel (0341) 3174000, ctdvillagobernadorgalvez@santafe.gov.ar, lunes a viernes 8 a 18:30h
-CD Nº14 Granadero Baigorria: San Martín 2281, ctdbaigorria@santafe.gov.ar, lunes a viernes 8 a 19h
-CD Nº15 Carcarañá: 9 de Julio 530, tel (0341) 4946566, ctdcarcarana@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Nº16 Casilda: Buenos Aires 2860, tel (03464) 455525, ctdcasilda@santafe.gov.ar, lunes a viernes 7:30 a 13h
-CD Nº18 Rosario Oeste: Av. Pte. Perón 4602, tel (341) 5775923 int 361, ctdrosario18@santafe.gov.ar, lunes a viernes 7:30 a 17:30h
-CD Nº20 Puerto General San Martín: Bv. El Lapacho 712, tel (03476) 15690109, ctdpuertogeneralsanmartin@santafe.gov.ar, lunes/martes/jueves/viernes 8 a 14h, miércoles 11 a 17h
-CD Nº22 Cañada de Gómez: 7 de Octubre 681, tel (03471) 424467, ctdcdegomez@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Nº24 San Lorenzo: Av. del Combate al 500, ctdsanlorenzo@santafe.gov.ar, lunes a viernes 8 a 19h
-CD Nº25 Andino: Alem 827, tel (03476) 496190, ctdandino@santafe.gov.ar, lunes/miércoles/viernes 8 a 14h, martes/jueves 14 a 19h
-CD Nº26 Capitán Bermúdez: Av. San Lorenzo 535 (galería La Central local 9), tel (341) 4784838, ctdcapitanbermudez@santafe.gov.ar, lunes a viernes 8 a 19h
-CD Nº27 Pueblo Esther: Colectora J. B. Alberdi 1374, tel (03402) 499049 int 243, ctdpuebloesther@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Nº28 Arroyo Seco: Belgrano 434 Anexo Municipal, tel (3402) 427391, ctdarroyoseco@santafe.gov.ar, lunes a viernes 8 a 14h
-CD 911 Rosario: Crespo 4700 COP 911, cd911rosario@santafe.gov.ar, lunes a lunes 8 a 20h
-NOTA: CD Villa Constitución está cerrado por mudanza.
+CD Nº1 Mendoza: Mendoza 3538, (0341) 4724568, ctdrosario1@santafe.gov.ar, lunes a viernes 8-19h sábados 9-12h
+CD Nº2 COP: Crespo 4700, (0341) 4772581, ctdrosario2@santafe.gov.ar, lunes a viernes 8-18h
+CD Nº3 Noroeste: Av. Provincias Unidas 150 BIS, (0341) 4727555/56, ctdrosario3@santafe.gov.ar, lunes a viernes 8-18h
+CD Nº4 Sur: Av. Uriburu 637, (0341) 4809890 int 443, ctdrosario4@santafe.gov.ar, lunes a viernes 8-18h
+CD Nº7 CAJ: Corrientes 2114, (0341) 4818686, ctdrosario7@santafe.gov.ar, lunes a viernes 8-19h
+CD Nº6 Funes: Tomás de la Torre 1725, (0341) 4930298, ctdrosario6@santafe.gov.ar, lunes a viernes 7:30-12h
+CD Nº8 Armstrong: Ruta 9 y Crucianelli Terminal, (03471) 490419, ctdamstrong@santafe.gov.ar, lunes a viernes 7-13h
+CD Nº9 Pérez: 9 de Julio 804, (0341) 5263189, ctdperez@santafe.gov.ar, lunes a viernes 8-19h
+CD Nº10 Fray Luis Beltrán: Pte. Perón 001 esq. Av. San Martín, ctdfrayluisbeltran@santafe.gov.ar, lunes a viernes 7:30-13h
+CD Nº11 Roldán: Mitre 139, (0341) 4962008, ctdroldan@santafe.gov.ar, lunes a viernes 8-14h
+CD Nº12 Villa Gobernador Gálvez: Bomberos Voluntarios 2013, (0341) 3174000, ctdvillagobernadorgalvez@santafe.gov.ar, lunes a viernes 8-18:30h
+CD Nº14 Granadero Baigorria: San Martín 2281, ctdbaigorria@santafe.gov.ar, lunes a viernes 8-19h
+CD Nº15 Carcarañá: 9 de Julio 530, (0341) 4946566, ctdcarcarana@santafe.gov.ar, lunes a viernes 8-14h
+CD Nº16 Casilda: Buenos Aires 2860, (03464) 455525, ctdcasilda@santafe.gov.ar, lunes a viernes 7:30-13h
+CD Nº18 Rosario Oeste: Av. Pte. Perón 4602, (341) 5775923 int 361, ctdrosario18@santafe.gov.ar, lunes a viernes 7:30-17:30h
+CD Nº20 Puerto Gral San Martín: Bv. El Lapacho 712, (03476) 15690109, ctdpuertogeneralsanmartin@santafe.gov.ar, lunes/martes/jueves/viernes 8-14h miércoles 11-17h
+CD Nº22 Cañada de Gómez: 7 de Octubre 681, (03471) 424467, ctdcdegomez@santafe.gov.ar, lunes a viernes 8-14h
+CD Nº24 San Lorenzo: Av. del Combate al 500, ctdsanlorenzo@santafe.gov.ar, lunes a viernes 8-19h
+CD Nº25 Andino: Alem 827, (03476) 496190, ctdandino@santafe.gov.ar, lunes/miércoles/viernes 8-14h martes/jueves 14-19h
+CD Nº26 Capitán Bermúdez: Av. San Lorenzo 535 galería La Central local 9, (341) 4784838, ctdcapitanbermudez@santafe.gov.ar, lunes a viernes 8-19h
+CD Nº27 Pueblo Esther: Colectora J.B. Alberdi 1374, (03402) 499049 int 243, ctdpuebloesther@santafe.gov.ar, lunes a viernes 8-14h
+CD Nº28 Arroyo Seco: Belgrano 434 Anexo Municipal, (3402) 427391, ctdarroyoseco@santafe.gov.ar, lunes a viernes 8-14h
+CD 911 Rosario: Crespo 4700 COP 911, cd911rosario@santafe.gov.ar, todos los días 8-20h
+NOTA: CD Villa Constitución cerrado por mudanza.
 
 VENADO TUERTO Y ALREDEDORES:
-CD Venado Tuerto: San Martín 650, ctdvenadotuerto1@santafe.gov.ar, lunes a viernes 7 a 18h
-CD Venado Tuerto Terminal: Av. Dr. Luis Chapuis 2051, ctdvenadotuerto1@santafe.gov.ar, lunes a viernes 7 a 13h
-CD Firmat: Bv. Solís 780, ctdfirmat@santafe.gov.ar, lunes a viernes 7 a 18h
-CD Rufino: Centenario 517, ctdrufino@santafe.gov.ar, lunes a viernes 7 a 12:30h
-CD Villa Cañás: Avda. 50 esq. 57, ctdvillacanas@santafe.gov.ar, lunes a viernes 7 a 12:30h
-CD Chañar Ladeado: José Foresto y San Martín, tel 03468 481221, ctdchanarladeado@santafe.gov.ar, lunes a viernes 7 a 12:30h
+CD Venado Tuerto: San Martín 650, ctdvenadotuerto1@santafe.gov.ar, lunes a viernes 7-18h
+CD Venado Tuerto Terminal: Av. Dr. Luis Chapuis 2051, ctdvenadotuerto1@santafe.gov.ar, lunes a viernes 7-13h
+CD Firmat: Bv. Solís 780, ctdfirmat@santafe.gov.ar, lunes a viernes 7-18h
+CD Rufino: Centenario 517, ctdrufino@santafe.gov.ar, lunes a viernes 7-12:30h
+CD Villa Cañás: Avda. 50 esq. 57, ctdvillacanas@santafe.gov.ar, lunes a viernes 7-12:30h
+CD Chañar Ladeado: José Foresto y San Martín, 03468 481221, ctdchanarladeado@santafe.gov.ar, lunes a viernes 7-12:30h
 
 SANTA FE Y ALREDEDORES:
-CD Centro Santa Fe: Las Heras 2883, tel (0342) 4559785, ctdsantafe1@santafe.gov.ar, lunes a viernes 8 a 20h, sábados 9 a 12h
-CD Norte Santa Fe: Av. Aristóbulo del Valle 7404, tel (0342) 4833446, ctdsantafe2@santafe.gov.ar, lunes a viernes 8 a 20h
-CD San José de Rincón: Juan de Garay 2595 esq. Gamboa, ctdrincon@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Esperanza: Moreno 1987, ctdesperanza@santafe.gov.ar, lunes a viernes 7 a 13h
-CD Laguna Paiva: Av. San Martín y República de Italia, tel (0342) 4942304, ctdlagunapaiva@santafe.gov.ar, lunes a viernes 7 a 10:30h y 13 a 15:30h
-CD La Tablada: Av. Tte. Loza Polideportivo Municipal, ctdyapeyu@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Monte Vera: Dr. A. Gallardo 1775, ctdmontevera@santafe.gov.ar, lunes a jueves 7:30 a 13:30h
-CD Recreo: Mitre 1184, ctdrecreo@santafe.gov.ar, lunes a viernes 8 a 20h
-CD Coronda: Juan de Garay 1652, ctdcoronda@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Santa Fe Oeste: Blas Parera 5401, ctdsantafeoeste@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Sauce Viejo: 9 de Julio esq. Dr. Manuel Gálvez, ctdsauceviejo@santafe.gov.ar, lunes a viernes 8 a 14h
-CD San Justo: Predio Punto Violeta, ctdsanjusto@santafe.gov.ar, lunes a viernes 7 a 13h
-CD San Javier: Av. Poeta Julio Miño 1750, ctdsanjavier@santafe.gov.ar, lunes a viernes 8 a 14h
-CD El Trébol: Libertad 278 (Punto Violeta), cdeltrebol@santafe.gov.ar, lunes/miércoles/viernes 13 a 19h, martes/jueves 8 a 14h
-CD Santa Rosa de Calchines: Buenos Aires 856, cdsantarosa@santafe.gov.ar, lunes a viernes 7 a 13h
-CD Cayastá: Rey Fernando 1105, cdcayasta@santafe.gov.ar, lunes/miércoles/viernes 7 a 13h, martes/jueves 14 a 20h
-CD Sastre: Centro Cívico, Emilio Ortiz 1635, ctdsastre@santafe.gov.ar, lunes/martes/jueves 7 a 13h, miércoles/viernes 9 a 15h
-CD San Genaro: Anexo Municipal, Santa Fe 451, cdsangenaro@santafe.gov.ar, lunes a viernes 7 a 13h
-CD 911 Santa Fe: Primera Junta 2823, tel 911, cd911santafe@santafe.gov.ar, lunes a lunes 8 a 20h
-NOTA: CD Santo Tomé y CD San Jorge están cerrados hasta nuevo aviso.
+CD Centro Santa Fe: Las Heras 2883, (0342) 4559785, ctdsantafe1@santafe.gov.ar, lunes a viernes 8-20h sábados 9-12h
+CD Norte Santa Fe: Av. Aristóbulo del Valle 7404, (0342) 4833446, ctdsantafe2@santafe.gov.ar, lunes a viernes 8-20h
+CD San José de Rincón: Juan de Garay 2595 esq. Gamboa, ctdrincon@santafe.gov.ar, lunes a viernes 8-14h
+CD Esperanza: Moreno 1987, ctdesperanza@santafe.gov.ar, lunes a viernes 7-13h
+CD Laguna Paiva: Av. San Martín y República de Italia, (0342) 4942304, ctdlagunapaiva@santafe.gov.ar, lunes a viernes 7-10:30h y 13-15:30h
+CD Recreo: Mitre 1184, ctdrecreo@santafe.gov.ar, lunes a viernes 8-20h
+CD Coronda: Juan de Garay 1652, ctdcoronda@santafe.gov.ar, lunes a viernes 8-14h
+CD Santa Fe Oeste: Blas Parera 5401, ctdsantafeoeste@santafe.gov.ar, lunes a viernes 8-14h
+CD Sauce Viejo: 9 de Julio esq. Dr. Manuel Gálvez, ctdsauceviejo@santafe.gov.ar, lunes a viernes 8-14h
+CD San Justo: Predio Punto Violeta, ctdsanjusto@santafe.gov.ar, lunes a viernes 7-13h
+CD San Javier: Av. Poeta Julio Miño 1750, ctdsanjavier@santafe.gov.ar, lunes a viernes 8-14h
+CD El Trébol: Libertad 278 Punto Violeta, cdeltrebol@santafe.gov.ar, lunes/miércoles/viernes 13-19h martes/jueves 8-14h
+CD Santa Rosa de Calchines: Buenos Aires 856, cdsantarosa@santafe.gov.ar, lunes a viernes 7-13h
+CD Cayastá: Rey Fernando 1105, cdcayasta@santafe.gov.ar, lunes/miércoles/viernes 7-13h martes/jueves 14-20h
+CD Sastre: Centro Cívico Emilio Ortiz 1635, ctdsastre@santafe.gov.ar, lunes/martes/jueves 7-13h miércoles/viernes 9-15h
+CD San Genaro: Anexo Municipal Santa Fe 451, cdsangenaro@santafe.gov.ar, lunes a viernes 7-13h
+CD 911 Santa Fe: Primera Junta 2823, tel 911, cd911santafe@santafe.gov.ar, todos los días 8-20h
+NOTA: CD Santo Tomé y CD San Jorge cerrados hasta nuevo aviso.
 
 RAFAELA Y ALREDEDORES:
-CD Rafaela: Guemes 282, ctdrafaela@santafe.gov.ar, lunes a viernes 8 a 20h
-CD Ceres: Moreno 256, ctdceres@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Frontera: Calle 70 al 175, ctdfrontera@santafe.gov.ar, lunes a viernes 8 a 14h
-CD Sunchales: Av. Hipólito Irigoyen al 800, ctdsunchales@santafe.gov.ar, lunes a viernes 8 a 14h
-CD 911 Rafaela: 1° Junta 2825, cd911@santafe.gov.ar, lunes a domingo 8 a 20h
+CD Rafaela: Guemes 282, ctdrafaela@santafe.gov.ar, lunes a viernes 8-20h
+CD Ceres: Moreno 256, ctdceres@santafe.gov.ar, lunes a viernes 8-14h
+CD Frontera: Calle 70 al 175, ctdfrontera@santafe.gov.ar, lunes a viernes 8-14h
+CD Sunchales: Av. Hipólito Irigoyen al 800, ctdsunchales@santafe.gov.ar, lunes a viernes 8-14h
+CD 911 Rafaela: 1° Junta 2825, cd911@santafe.gov.ar, todos los días 8-20h
 
 RECONQUISTA:
-CD Reconquista: Patricio Diez 1125 loc. 8 y 9 (Terminal de Ómnibus), tel (03482) 449271, ctdreconquista@santafe.gov.ar, lunes a viernes 8 a 18h
-CD Avellaneda: Calle 4 entre 17 y 19, ctdavellaneda@gmail.com, lunes a viernes 8 a 14h
-CD Villa Ocampo: Francisco Conti 1579, cdvillaocampo@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Reconquista: Patricio Diez 1125 loc. 8 y 9 Terminal de Ómnibus, (03482) 449271, ctdreconquista@santafe.gov.ar, lunes a viernes 8-18h
+CD Avellaneda: Calle 4 entre 17 y 19, ctdavellaneda@gmail.com, lunes a viernes 8-14h
+CD Villa Ocampo: Francisco Conti 1579, cdvillaocampo@santafe.gov.ar, lunes a viernes 8-14h
 
-═══════════════════════════════════
-FLUJO 3 — ESTADO DE CAUSA / PORTAL DE LA VÍCTIMA (MUNINN)
-═══════════════════════════════════
-Para víctimas que quieren consultar el estado de su causa judicial:
-El MPA cuenta con el Portal de la Víctima llamado Muninn, disponible en mpa.santafe.gov.ar/muninn/login. Requiere un proceso de enrolamiento previo. Preguntá si ya realizó el enrolamiento o necesita orientación.
+FLUJO 3 — ESTADO DE CAUSA / PORTAL MUNINN:
+Para víctimas que quieren consultar el estado de su causa judicial existe el Portal de la Víctima llamado Muninn, disponible en mpa.santafe.gov.ar/muninn/login. Requiere enrolamiento previo. Preguntá si ya lo realizó.
 
-═══════════════════════════════════
-FLUJO 4 — PORTAL DE PROFESIONALES (HUGINN)
-═══════════════════════════════════
-Para abogados o profesionales del derecho que intervienen como representantes en causas:
-El MPA cuenta con el Portal de Profesionales llamado Huginn, disponible en mpa.santafe.gov.ar/muninn/login seleccionando el acceso para profesionales. Requiere enrolamiento previo. Ante dudas sobre el proceso escribir a recompensas@mpa.santafe.gov.ar
+FLUJO 4 — PORTAL DE PROFESIONALES (HUGINN):
+Para abogados o profesionales del derecho: Portal de Profesionales llamado Huginn, disponible en mpa.santafe.gov.ar/muninn/login seleccionando el acceso para profesionales. Requiere enrolamiento. Para dudas: recompensas@mpa.santafe.gov.ar
 
-═══════════════════════════════════
-FLUJO 5 — VIOLENCIA DE GÉNERO
-═══════════════════════════════════
-Si la persona menciona violencia, maltrato, abuso, miedo o riesgo:
-Primero: reconocé lo que está viviendo con calidez genuina. No minimices, no apurés.
-Si hay peligro inmediato: indicá llamar al 911 sin preámbulos.
-Si busca orientación: ofrecé denuncia online o presencial y el correo recompensas@mpa.santafe.gov.ar para aportes sobre causas.
-Siempre preguntá cómo podés ayudarle a avanzar.
+FLUJO 5 — VIOLENCIA DE GÉNERO:
+Si la persona menciona violencia, maltrato, abuso, miedo o riesgo: primero reconocé lo que está viviendo con calidez genuina. No minimices. Si hay peligro inmediato: indicá llamar al 911 sin preámbulos. Si busca orientación: ofrecé denuncia online o presencial y el correo recompensas@mpa.santafe.gov.ar
 
-═══════════════════════════════════
-CONTACTO GENERAL
-═══════════════════════════════════
-Para consultas o dudas que no puedas resolver: recompensas@mpa.santafe.gov.ar
-Centros de Denuncias (correo general): direccionctd@santafe.gov.ar
+CONTACTO GENERAL: recompensas@mpa.santafe.gov.ar — direccionctd@santafe.gov.ar
 
 RESTRICCIONES:
 Nunca compartas información de causas particulares.
 Nunca brindes asesoramiento legal.
 Nunca cuestiones ni minimices el relato de alguien que expresa haber sufrido violencia.
-Nunca inventes información, pasos, URLs, teléfonos ni emails que no estén en estas instrucciones.
-Nunca uses markdown de ningún tipo.
+Nunca inventes información, URLs, teléfonos ni emails que no estén en estas instrucciones.
+Nunca uses markdown de ningún tipo. Solo texto plano.
 Si no sabés algo, decilo claramente en lugar de inventar.
-Si el usuario pregunta por un centro en una ciudad que no está en esta lista, decí que no tenés esa información y derivá a direccionctd@santafe.gov.ar`;
+Si el usuario pregunta por una ciudad que no está en la lista, decí que no tenés esa información y derivá a direccionctd@santafe.gov.ar`;
 
 /* ── NAVEGACIÓN ── */
 function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
 }
 
-function launchChat() { show('chat'); initChat(); }
+function startChat() { show('chat'); initChat(); }
 
-/* ── CHAT ── */
+/* ── INIT ── */
 function initChat() {
   history = [];
-
   const d = new Date();
-  document.getElementById('date-label').textContent =
+  document.getElementById('date-lbl').textContent =
     'Hoy, ' + d.toLocaleDateString('es-AR', { day:'numeric', month:'long', year:'numeric' });
 
-  const msgs = document.getElementById('messages');
+  // Limpiar mensajes anteriores (excepto date-chip y typing)
+  const msgs = document.getElementById('msgs');
   Array.from(msgs.children).forEach(c => {
-    if (!c.classList.contains('date-chip') && !c.classList.contains('typing-wrap')) c.remove();
+    if (!c.classList.contains('date-chip') && !c.classList.contains('typing')) c.remove();
   });
 
   setTimeout(() => {
@@ -517,55 +496,43 @@ function initChat() {
       hideTyping();
       addBot('Hola, soy el asistente virtual del Ministerio Público de la Acusación de Santa Fe. ¿En qué puedo orientarle hoy?');
     }, 1200);
-  }, 350);
+  }, 300);
 }
 
 function resetChat() { initChat(); }
 
-/* ── MENSAJES ── */
-function now() {
+/* ── TIEMPO ── */
+function hhmm() {
   const d = new Date();
   return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
 }
 
+/* ── MENSAJES ── */
 function addBot(text) {
-  const msgs = document.getElementById('messages');
-  const el = document.createElement('div');
-  el.className = 'msg bot';
-  el.innerHTML = `<div class="bubble">${linkify(text)}</div>
-    <div class="msg-meta"><span class="msg-time">${now()}</span></div>`;
-  msgs.insertBefore(el, document.getElementById('typing'));
-  scroll();
+  insert('bot', `<div class="bubble">${linkify(text)}</div><div class="meta"><span class="meta-time">${hhmm()}</span></div>`);
+}
+function addUsr(text) {
+  insert('usr', `<div class="bubble">${esc(text)}</div><div class="meta"><span class="meta-time">${hhmm()}</span><span class="ticks">✓✓</span></div>`);
+}
+function addSos(text) {
+  insert('sos', `<div class="bubble">${esc(text)}</div>`);
 }
 
-function addUser(text) {
-  const msgs = document.getElementById('messages');
+function insert(cls, html) {
+  const msgs = document.getElementById('msgs');
   const el = document.createElement('div');
-  el.className = 'msg user';
-  el.innerHTML = `<div class="bubble">${esc(text)}</div>
-    <div class="msg-meta"><span class="msg-time">${now()}</span><span class="ticks">✓✓</span></div>`;
+  el.className = 'msg ' + cls;
+  el.innerHTML = html;
   msgs.insertBefore(el, document.getElementById('typing'));
-  scroll();
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
-function addSys(text, emergency = false) {
-  const msgs = document.getElementById('messages');
-  const el = document.createElement('div');
-  el.className = emergency ? 'msg sys emergency' : 'msg sys';
-  el.innerHTML = `<div class="bubble">${esc(text)}</div>`;
-  msgs.insertBefore(el, document.getElementById('typing'));
-  scroll();
-}
-
-function scroll() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
-
-function linkify(text) {
-  return esc(text).replace(
-    /([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}\/[^\s<]*|[a-zA-Z0-9\-\.]+\.(?:gov\.ar|com\.ar|org\.ar|net\.ar)(?=[\s,.\n]|$))/g,
-    url => `<a href="https://${url.replace(/^https?:\/\//,'')}" target="_blank" rel="noopener">${url}</a>`
+function linkify(t) {
+  return esc(t).replace(
+    /([a-zA-Z0-9\-\.]+\.(?:gov\.ar|com\.ar|org\.ar|net\.ar)(?:\/[^\s<]*)?)/g,
+    u => `<a href="https://${u.replace(/^https?:\/\//,'')}" target="_blank" rel="noopener">${u}</a>`
   );
 }
-
 function esc(t) {
   return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
           .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
@@ -573,45 +540,43 @@ function esc(t) {
 
 /* ── TYPING ── */
 function showTyping() {
-  document.getElementById('typing').classList.add('show');
-  const st = document.getElementById('hdr-status');
-  st.textContent = 'escribiendo...';
-  st.className = 'header-status typing';
-  scroll();
+  const t = document.getElementById('typing');
+  t.classList.add('on');
+  setStatus('escribiendo...', true);
+  document.getElementById('msgs').scrollTop = 99999;
 }
 function hideTyping() {
-  document.getElementById('typing').classList.remove('show');
-  const st = document.getElementById('hdr-status');
-  st.textContent = 'en línea';
-  st.className = 'header-status';
+  document.getElementById('typing').classList.remove('on');
+  setStatus('en línea', false);
+}
+function setStatus(txt, dim) {
+  const s = document.getElementById('status');
+  s.textContent = txt;
+  s.className = 'ch-status' + (dim ? ' typing' : '');
 }
 
 /* ── ENVÍO ── */
+const EMERGENCY = /me golpea|me pega|me está golpeando|me amenaza|va a matarme|me va a matar|riesgo de vida|en peligro ahora|está aquí|está en casa|no puedo salir|me tiene encerrada|me tiene encerrado|me está atacando|acaba de golpearme|tengo miedo de que me/i;
+
 function send() {
-  const inp = document.getElementById('msg-input');
-  const text = inp.value.trim();
+  const el = document.getElementById('txt');
+  const text = el.value.trim();
   if (!text || busy) return;
-  inp.value = '';
-  inp.style.height = 'auto';
-  dispatch(text);
-}
-
-const EMERGENCY_RE = /me golpea|me pega|me está golpeando|me amenaza|va a matarme|me va a matar|riesgo de vida|en peligro ahora|está aquí|está en casa|no puedo salir|me tiene encerrada|me tiene encerrado|me está atacando|está por llegar|tengo miedo de que me|me acaba de golpear/i;
-
-function dispatch(text) {
-  addUser(text);
+  el.value = '';
+  el.style.height = 'auto';
+  addUsr(text);
   history.push({ role: 'user', content: text });
   busy = true;
   document.getElementById('btn-send').disabled = true;
 
-  if (EMERGENCY_RE.test(text)) {
-    setTimeout(() => addSys('🚨 EMERGENCIA — Llamá al 911 ahora. Podés hacerlo aunque no puedas hablar: marcá y dejá la línea abierta.', true), 150);
+  if (EMERGENCY.test(text)) {
+    setTimeout(() => addSos('🚨 EMERGENCIA — Llamá al 911 ahora. Podés marcar y dejar la línea abierta aunque no puedas hablar.'), 150);
   }
 
   setTimeout(() => { showTyping(); callApi(); }, 350);
 }
 
-/* ── API (proxy Netlify) ── */
+/* ── API ── */
 async function callApi() {
   try {
     const res = await fetch('/.netlify/functions/anthropic-proxy', {
@@ -620,17 +585,14 @@ async function callApi() {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 600,
-        system: SYSTEM,
+        system: SYS,
         messages: history
       })
     });
-
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
-
     const reply = data.content[0].text;
     history.push({ role: 'assistant', content: reply });
-
     const delay = Math.min(2200, Math.max(600, reply.length * 10));
     setTimeout(() => {
       hideTyping();
@@ -638,9 +600,8 @@ async function callApi() {
       busy = false;
       document.getElementById('btn-send').disabled = false;
     }, delay);
-
-  } catch (err) {
-    console.error(err);
+  } catch(e) {
+    console.error(e);
     hideTyping();
     addBot('En este momento no puedo procesar su consulta. Por favor intente nuevamente o escriba a recompensas@mpa.santafe.gov.ar.');
     busy = false;
@@ -649,11 +610,14 @@ async function callApi() {
 }
 
 /* ── INPUT ── */
-const inp = document.getElementById('msg-input');
-inp.addEventListener('input', function() { this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,110)+'px'; });
-inp.addEventListener('keydown', function(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+const txt = document.getElementById('txt');
+txt.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+txt.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
 </script>
-
-</div><!-- /#app -->
 </body>
 </html>
