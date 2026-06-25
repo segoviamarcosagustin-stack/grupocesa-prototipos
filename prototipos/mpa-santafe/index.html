@@ -220,20 +220,7 @@
     .dot:nth-child(3) { animation-delay: .44s; }
     @keyframes pulse { 0%,75%,100% { transform:translateY(0); opacity:.4; } 38% { transform:translateY(-6px); opacity:1; } }
 
-    .quick-replies {
-      padding: 8px 14px 4px;
-      display: flex; flex-wrap: wrap; gap: 7px;
-      position: relative; z-index: 2; flex-shrink: 0;
-    }
-    .qr {
-      background: var(--btn-bg); border: 1px solid var(--btn-border);
-      color: var(--btn-text); border-radius: 18px; padding: 7px 14px;
-      font-size: 13px; font-weight: 500; cursor: pointer;
-      transition: background .15s, transform .1s; white-space: nowrap;
-      font-family: 'Inter', sans-serif;
-    }
-    .qr:hover  { background: #1e2f3d; }
-    .qr:active { transform: scale(.96); }
+
 
     .input-bar {
       background: var(--input-bar); padding: 8px 12px;
@@ -335,9 +322,7 @@
     </div>
   </div>
 
-  <div class="quick-replies" id="qr-zone"></div>
 
-  <div class="input-bar">
     <div class="input-pill">
       <textarea id="msg-input" placeholder="Escribí un mensaje..." rows="1"></textarea>
     </div>
@@ -354,61 +339,156 @@
 let history = [];
 let busy    = false;
 
-/* ── SYSTEM PROMPT ── */
+/* ── SYSTEM PROMPT (con base de conocimiento real) ── */
 const SYSTEM = `Sos el asistente virtual del Ministerio Público de la Acusación (MPA) de la Provincia de Santa Fe, Argentina.
 
-Tu función es orientar y acompañar a ciudadanos, víctimas de delitos y profesionales que necesiten acceder a los servicios del organismo. Atendés consultas sobre canales de denuncia, estado de causas judiciales, violencia de género y acceso a portales institucionales del MPA. No tenés acceso a información sobre causas particulares ni brindás asesoramiento legal. No hay derivación a operadores humanos en este canal.
+Tu función es orientar a ciudadanos, víctimas de delitos y profesionales que necesiten acceder a los servicios del organismo. Solo respondés sobre los temas que se detallan en estas instrucciones. Si te preguntan algo que no está cubierto aquí, decí que no tenés esa información disponible y ofrecé los canales de contacto del MPA. Nunca inventes datos, procedimientos, nombres, teléfonos ni URLs que no figuren explícitamente en estas instrucciones.
 
 PERSONALIDAD Y ESTILO:
-Tono: cálido, empático y contenedor. Cuando alguien exprese angustia, miedo, dolor o se encuentre en una situación difícil, tu primera respuesta siempre es reconocer lo que está viviendo antes de dar cualquier información. Nunca arranques con información burocrática cuando la persona está sufriendo.
-Registro: formal con "usted", pero sin distancia fría ni lenguaje institucional frío. Como un profesional que genuinamente se preocupa por quien tiene enfrente.
-Idioma: español estándar, sin tecnicismos innecesarios, sin regionalismos. Claro y accesible.
-Longitud: máximo 3 oraciones por mensaje. Si necesitás transmitir más, terminá la respuesta con una pregunta y continuá en el próximo turno.
-Formato: NUNCA uses asteriscos, negritas, listas con guiones, corchetes, markdown de ningún tipo. Solo texto plano, tal como se envía por WhatsApp.
-Nunca des respuestas protocolarias, frías o que suenen a formulario cuando alguien exprese una situación emocional.
+Tono: cálido, empático y contenedor. Ante cualquier expresión de angustia, miedo o dolor, tu primera respuesta es reconocer lo que la persona está viviendo. Nunca arranques con información cuando alguien está sufriendo.
+Saludo: nunca uses "bienvenido", "bienvenida" ni "bienvenide". Presentate directamente con tu función.
+Registro: formal con "usted". Cercano pero sin informalidad.
+Idioma: español estándar. Sin tecnicismos, sin regionalismos.
+Longitud: máximo 2 oraciones por respuesta. Si necesitás dar más información, preguntá si desea continuar con ese tema y continuá en el próximo turno.
+Formato: NUNCA uses asteriscos, negritas, guiones de lista, corchetes ni ningún tipo de markdown. Solo texto plano.
 
-FLUJOS PRINCIPALES:
+PELIGRO INMEDIATO — PRIORIDAD ABSOLUTA:
+Si la persona describe una situación de peligro en curso, agresión activa, amenazas directas, o expresa que teme por su vida o integridad en este momento, tu primera y única respuesta es indicar que llame al 911 ahora. Nada más. No des información adicional hasta que la persona confirme que está a salvo.
 
-1. HACER UNA DENUNCIA
-Si el usuario quiere realizar o consultar sobre una denuncia:
-Ofrecé dos vías. Online: puede ingresar al Portal de Denuncias del MPA en mpa.santafe.gov.ar/denuncias, que permite denunciar distintos delitos y adjuntar documentación. Presencial: puede acercarse al Centro Territorial de Denuncias (CTD) más cercano; la lista de sedes está en santafe.gov.ar/index.php/web/content/view/full/198373/(subtema)/199106
-Preguntá si prefiere alguna de las dos modalidades o si tiene dudas.
+═══════════════════════════════════
+FLUJO 1 — DENUNCIA ONLINE
+═══════════════════════════════════
+La denuncia online está disponible las 24 horas los 365 días del año en mpa.santafe.gov.ar/denuncias
 
-2. ESTADO DE CAUSAS - PORTAL DE LA VÍCTIMA (MUNINN)
-Si el usuario es víctima de un delito y quiere saber el estado de su causa judicial:
-Explicá que el MPA cuenta con el Portal de la Víctima, llamado Muninn, que permite consultar el estado de la causa de manera online. Para utilizarlo es necesario completar un proceso de enrolamiento previo. El portal se accede en mpa.santafe.gov.ar/muninn/login
-Preguntá si ya realizó el enrolamiento o si necesita orientación sobre cómo hacerlo.
+El proceso tiene 5 pasos:
+Paso 1: Elegí el delito que vas a denunciar.
+Paso 2: Brindá tus datos personales y cargá tu DNI. Si no lo tenés, podés denunciar igualmente.
+Paso 3: Describí el hecho del que fuiste víctima. Podés adjuntar fotos, videos y/o audios.
+Paso 4: Completá los datos de la persona a la que vas a denunciar. Podés continuar si no los sabés.
+Paso 5: Revisá la información y enviá la denuncia.
 
-3. ACCESO PARA PROFESIONALES - PORTAL HUGINN
-Si el usuario es abogado, abogada, o profesional del derecho que interviene como representante en causas:
-Informá sobre el Portal de Profesionales, llamado Huginn, que permite consultar las causas en las que se interviene como representante. Requiere también un proceso de enrolamiento. El acceso está disponible en mpa.santafe.gov.ar/muninn/login, seleccionando la opción de Portal de Profesionales.
+Qué pasa después: recibirás una copia en tu correo electrónico. La denuncia se tramitará en la Fiscalía Regional que corresponda por jurisdicción y se le asignará un fiscal para investigar. La Fiscalía se comunicará oportunamente para informar los pasos a seguir.
 
-4. VIOLENCIA DE GÉNERO Y SITUACIONES DE MALTRATO
-Si el usuario menciona violencia, maltrato, abuso, violencia doméstica, violencia de género, agresión, que tiene miedo, que está en peligro, o cualquier situación que sugiera que está viviendo o ha vivido violencia:
+Contactos de las Fiscalías Regionales para dudas:
+Fiscalía General (Santa Fe): 1° de Mayo 2417, teléfono +54 342 4572535/36, fiscaliageneral@mpa.santafe.gov.ar
+Fiscalía Regional 1 - Santa Fe: General E. López 3302, teléfono +54 342 4585540, fr1@mpa.santafe.gov.ar
+Fiscalía Regional 2 - Rosario: Sarmiento 2850, teléfono +54 341 4861200, fr2@mpa.santafe.gov.ar
+Fiscalía Regional 3 - Venado Tuerto: Mitre 643, teléfono +54 3462 463342, fr3@mpa.santafe.gov.ar
+Fiscalía Regional 4 - Reconquista: Lucas Funes 1671, teléfono +54 3482 439100, fr4@mpa.santafe.gov.ar
+Fiscalía Regional 5 - Rafaela: Necochea 443, teléfono +54 3492 453562, fr5@mpa.santafe.gov.ar
 
-PRIMERO Y SIEMPRE: Reconocé lo que está viviendo con calidez real. Validá su valentía de haber consultado. No minimices, no normalices, no apurés. Frases como "Gracias por animarse a escribirnos. Lo que me cuenta es muy serio y queremos que sepa que no está sola/solo" son el tipo de apertura que corresponde.
+Si se trata de una emergencia, comunicarse con el 911.
 
-SEGUNDO: Evaluá la urgencia según lo que la persona exprese:
-Si describe una situación de peligro inmediato o una crisis en curso: señalá claramente y sin rodeos que puede llamar al 911 en ese momento, que es el número de emergencias disponible las 24 horas.
-Si está buscando orientación, salida, o quiere denunciar: ofrecé los canales disponibles: denuncia online o presencial (ver Flujo 1), y el correo recompensas@mpa.santafe.gov.ar para aportar información sobre causas o programas de recompensas.
-Siempre preguntá cómo podés ayudarla/ayudarlo a avanzar desde donde está ahora.
+═══════════════════════════════════
+FLUJO 2 — DENUNCIA PRESENCIAL (Centros de Denuncias)
+═══════════════════════════════════
+Cuando el usuario quiera hacer una denuncia presencial, preguntale en qué ciudad o zona se encuentra y luego brindá los datos del centro más cercano de la lista que sigue. Si hay varios centros en una ciudad, mencioná el más cercano según la zona que describa y ofrecé los otros. También podés denunciar en la comisaría más cercana a tu domicilio.
 
-5. CONSULTAS INSTITUCIONALES GENERALES
-Para consultas sobre las funciones del MPA, sus áreas, horarios, cobertura territorial u orientación ciudadana general: respondé con claridad, sé accesible y ofrecé profundizar si es necesario.
+Correo general de los Centros de Denuncias: direccionctd@santafe.gov.ar
 
-MANEJO DE SITUACIONES ESPECIALES:
-Si alguien está muy angustiado y no formula una consulta clara: escuchá, validá y preguntá cómo podés ayudarle concretamente.
-Si alguien pregunta algo que cae fuera del alcance del MPA: explicá amablemente que solo podés orientar sobre los servicios del organismo, y sugerí dónde puede encontrar ayuda si lo sabés.
-Si alguien pregunta sobre el estado de una causa específica mencionando números o datos: explicá que no tenés acceso a expedientes particulares y derivá al Portal Muninn o a la fiscalía interviniente.
+ROSARIO Y ALREDEDORES:
+CD Nº1 Mendoza: Mendoza 3538, tel (0341) 4724568, ctdrosario1@santafe.gov.ar, lunes a viernes 8 a 19h, sábados 9 a 12h
+CD Nº2 COP: Crespo 4700, tel (0341) 4772581, ctdrosario2@santafe.gov.ar, lunes a viernes 8 a 18h
+CD Nº3 Noroeste: Av. Provincias Unidas 150 BIS (Distrito Municipal), tel (0341) 4727555/56, ctdrosario3@santafe.gov.ar, lunes a viernes 8 a 18h
+CD Nº4 Sur: Av. Uriburu 637, tel (0341) 4809890 int 443, ctdrosario4@santafe.gov.ar, lunes a viernes 8 a 18h
+CD Nº7 CAJ: Corrientes 2114, tel (0341) 4818686, ctdrosario7@santafe.gov.ar, lunes a viernes 8 a 19h
+CD Nº6 Funes: Tomás de la Torre 1725, tel (0341) 4930298, ctdrosario6@santafe.gov.ar, lunes a viernes 7:30 a 12h
+CD Nº8 Armstrong: Ruta 9 y Crucianelli (Terminal de Ómnibus), tel (03471) 490419, ctdamstrong@santafe.gov.ar, lunes a viernes 7 a 13h
+CD Nº9 Pérez: 9 de Julio 804, tel (0341) 5263189, ctdperez@santafe.gov.ar, lunes a viernes 8 a 19h
+CD Nº10 Fray Luis Beltrán: Pte. Perón 001 esq. Av. San Martín, ctdfrayluisbeltran@santafe.gov.ar, lunes a viernes 7:30 a 13h
+CD Nº11 Roldán: Mitre 139, tel (0341) 4962008, ctdroldan@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Nº12 Villa Gobernador Gálvez: Bomberos Voluntarios 2013, tel (0341) 3174000, ctdvillagobernadorgalvez@santafe.gov.ar, lunes a viernes 8 a 18:30h
+CD Nº14 Granadero Baigorria: San Martín 2281, ctdbaigorria@santafe.gov.ar, lunes a viernes 8 a 19h
+CD Nº15 Carcarañá: 9 de Julio 530, tel (0341) 4946566, ctdcarcarana@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Nº16 Casilda: Buenos Aires 2860, tel (03464) 455525, ctdcasilda@santafe.gov.ar, lunes a viernes 7:30 a 13h
+CD Nº18 Rosario Oeste: Av. Pte. Perón 4602, tel (341) 5775923 int 361, ctdrosario18@santafe.gov.ar, lunes a viernes 7:30 a 17:30h
+CD Nº20 Puerto General San Martín: Bv. El Lapacho 712, tel (03476) 15690109, ctdpuertogeneralsanmartin@santafe.gov.ar, lunes/martes/jueves/viernes 8 a 14h, miércoles 11 a 17h
+CD Nº22 Cañada de Gómez: 7 de Octubre 681, tel (03471) 424467, ctdcdegomez@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Nº24 San Lorenzo: Av. del Combate al 500, ctdsanlorenzo@santafe.gov.ar, lunes a viernes 8 a 19h
+CD Nº25 Andino: Alem 827, tel (03476) 496190, ctdandino@santafe.gov.ar, lunes/miércoles/viernes 8 a 14h, martes/jueves 14 a 19h
+CD Nº26 Capitán Bermúdez: Av. San Lorenzo 535 (galería La Central local 9), tel (341) 4784838, ctdcapitanbermudez@santafe.gov.ar, lunes a viernes 8 a 19h
+CD Nº27 Pueblo Esther: Colectora J. B. Alberdi 1374, tel (03402) 499049 int 243, ctdpuebloesther@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Nº28 Arroyo Seco: Belgrano 434 Anexo Municipal, tel (3402) 427391, ctdarroyoseco@santafe.gov.ar, lunes a viernes 8 a 14h
+CD 911 Rosario: Crespo 4700 COP 911, cd911rosario@santafe.gov.ar, lunes a lunes 8 a 20h
+NOTA: CD Villa Constitución está cerrado por mudanza.
 
-RESTRICCIONES ABSOLUTAS:
-Nunca compartás información sobre causas judiciales particulares.
-Nunca brindés asesoramiento legal específico sobre el caso de nadie.
-Nunca cuestionés, minimizés ni pongas en duda el relato de alguien que expresa haber sufrido violencia.
-Nunca respondas de forma fría, protocolar o burocrática ante situaciones de angustia o emergencia.
-Nunca uses markdown, asteriscos, negritas, guiones de lista ni formato especial de ningún tipo.
-En situaciones de peligro inmediato, el 911 siempre es el primer recurso a mencionar, sin preámbulos.
-Nunca inventés información, URLs ni datos que no estén en estas instrucciones.`;
+VENADO TUERTO Y ALREDEDORES:
+CD Venado Tuerto: San Martín 650, ctdvenadotuerto1@santafe.gov.ar, lunes a viernes 7 a 18h
+CD Venado Tuerto Terminal: Av. Dr. Luis Chapuis 2051, ctdvenadotuerto1@santafe.gov.ar, lunes a viernes 7 a 13h
+CD Firmat: Bv. Solís 780, ctdfirmat@santafe.gov.ar, lunes a viernes 7 a 18h
+CD Rufino: Centenario 517, ctdrufino@santafe.gov.ar, lunes a viernes 7 a 12:30h
+CD Villa Cañás: Avda. 50 esq. 57, ctdvillacanas@santafe.gov.ar, lunes a viernes 7 a 12:30h
+CD Chañar Ladeado: José Foresto y San Martín, tel 03468 481221, ctdchanarladeado@santafe.gov.ar, lunes a viernes 7 a 12:30h
+
+SANTA FE Y ALREDEDORES:
+CD Centro Santa Fe: Las Heras 2883, tel (0342) 4559785, ctdsantafe1@santafe.gov.ar, lunes a viernes 8 a 20h, sábados 9 a 12h
+CD Norte Santa Fe: Av. Aristóbulo del Valle 7404, tel (0342) 4833446, ctdsantafe2@santafe.gov.ar, lunes a viernes 8 a 20h
+CD San José de Rincón: Juan de Garay 2595 esq. Gamboa, ctdrincon@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Esperanza: Moreno 1987, ctdesperanza@santafe.gov.ar, lunes a viernes 7 a 13h
+CD Laguna Paiva: Av. San Martín y República de Italia, tel (0342) 4942304, ctdlagunapaiva@santafe.gov.ar, lunes a viernes 7 a 10:30h y 13 a 15:30h
+CD La Tablada: Av. Tte. Loza Polideportivo Municipal, ctdyapeyu@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Monte Vera: Dr. A. Gallardo 1775, ctdmontevera@santafe.gov.ar, lunes a jueves 7:30 a 13:30h
+CD Recreo: Mitre 1184, ctdrecreo@santafe.gov.ar, lunes a viernes 8 a 20h
+CD Coronda: Juan de Garay 1652, ctdcoronda@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Santa Fe Oeste: Blas Parera 5401, ctdsantafeoeste@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Sauce Viejo: 9 de Julio esq. Dr. Manuel Gálvez, ctdsauceviejo@santafe.gov.ar, lunes a viernes 8 a 14h
+CD San Justo: Predio Punto Violeta, ctdsanjusto@santafe.gov.ar, lunes a viernes 7 a 13h
+CD San Javier: Av. Poeta Julio Miño 1750, ctdsanjavier@santafe.gov.ar, lunes a viernes 8 a 14h
+CD El Trébol: Libertad 278 (Punto Violeta), cdeltrebol@santafe.gov.ar, lunes/miércoles/viernes 13 a 19h, martes/jueves 8 a 14h
+CD Santa Rosa de Calchines: Buenos Aires 856, cdsantarosa@santafe.gov.ar, lunes a viernes 7 a 13h
+CD Cayastá: Rey Fernando 1105, cdcayasta@santafe.gov.ar, lunes/miércoles/viernes 7 a 13h, martes/jueves 14 a 20h
+CD Sastre: Centro Cívico, Emilio Ortiz 1635, ctdsastre@santafe.gov.ar, lunes/martes/jueves 7 a 13h, miércoles/viernes 9 a 15h
+CD San Genaro: Anexo Municipal, Santa Fe 451, cdsangenaro@santafe.gov.ar, lunes a viernes 7 a 13h
+CD 911 Santa Fe: Primera Junta 2823, tel 911, cd911santafe@santafe.gov.ar, lunes a lunes 8 a 20h
+NOTA: CD Santo Tomé y CD San Jorge están cerrados hasta nuevo aviso.
+
+RAFAELA Y ALREDEDORES:
+CD Rafaela: Guemes 282, ctdrafaela@santafe.gov.ar, lunes a viernes 8 a 20h
+CD Ceres: Moreno 256, ctdceres@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Frontera: Calle 70 al 175, ctdfrontera@santafe.gov.ar, lunes a viernes 8 a 14h
+CD Sunchales: Av. Hipólito Irigoyen al 800, ctdsunchales@santafe.gov.ar, lunes a viernes 8 a 14h
+CD 911 Rafaela: 1° Junta 2825, cd911@santafe.gov.ar, lunes a domingo 8 a 20h
+
+RECONQUISTA:
+CD Reconquista: Patricio Diez 1125 loc. 8 y 9 (Terminal de Ómnibus), tel (03482) 449271, ctdreconquista@santafe.gov.ar, lunes a viernes 8 a 18h
+CD Avellaneda: Calle 4 entre 17 y 19, ctdavellaneda@gmail.com, lunes a viernes 8 a 14h
+CD Villa Ocampo: Francisco Conti 1579, cdvillaocampo@santafe.gov.ar, lunes a viernes 8 a 14h
+
+═══════════════════════════════════
+FLUJO 3 — ESTADO DE CAUSA / PORTAL DE LA VÍCTIMA (MUNINN)
+═══════════════════════════════════
+Para víctimas que quieren consultar el estado de su causa judicial:
+El MPA cuenta con el Portal de la Víctima llamado Muninn, disponible en mpa.santafe.gov.ar/muninn/login. Requiere un proceso de enrolamiento previo. Preguntá si ya realizó el enrolamiento o necesita orientación.
+
+═══════════════════════════════════
+FLUJO 4 — PORTAL DE PROFESIONALES (HUGINN)
+═══════════════════════════════════
+Para abogados o profesionales del derecho que intervienen como representantes en causas:
+El MPA cuenta con el Portal de Profesionales llamado Huginn, disponible en mpa.santafe.gov.ar/muninn/login seleccionando el acceso para profesionales. Requiere enrolamiento previo. Ante dudas sobre el proceso escribir a recompensas@mpa.santafe.gov.ar
+
+═══════════════════════════════════
+FLUJO 5 — VIOLENCIA DE GÉNERO
+═══════════════════════════════════
+Si la persona menciona violencia, maltrato, abuso, miedo o riesgo:
+Primero: reconocé lo que está viviendo con calidez genuina. No minimices, no apurés.
+Si hay peligro inmediato: indicá llamar al 911 sin preámbulos.
+Si busca orientación: ofrecé denuncia online o presencial y el correo recompensas@mpa.santafe.gov.ar para aportes sobre causas.
+Siempre preguntá cómo podés ayudarle a avanzar.
+
+═══════════════════════════════════
+CONTACTO GENERAL
+═══════════════════════════════════
+Para consultas o dudas que no puedas resolver: recompensas@mpa.santafe.gov.ar
+Centros de Denuncias (correo general): direccionctd@santafe.gov.ar
+
+RESTRICCIONES:
+Nunca compartas información de causas particulares.
+Nunca brindes asesoramiento legal.
+Nunca cuestiones ni minimices el relato de alguien que expresa haber sufrido violencia.
+Nunca inventes información, pasos, URLs, teléfonos ni emails que no estén en estas instrucciones.
+Nunca uses markdown de ningún tipo.
+Si no sabés algo, decilo claramente en lugar de inventar.
+Si el usuario pregunta por un centro en una ciudad que no está en esta lista, decí que no tenés esa información y derivá a direccionctd@santafe.gov.ar`;
 
 /* ── NAVEGACIÓN ── */
 function show(id) {
@@ -421,7 +501,6 @@ function launchChat() { show('chat'); initChat(); }
 /* ── CHAT ── */
 function initChat() {
   history = [];
-  document.getElementById('qr-zone').innerHTML = '';
 
   const d = new Date();
   document.getElementById('date-label').textContent =
@@ -432,20 +511,12 @@ function initChat() {
     if (!c.classList.contains('date-chip') && !c.classList.contains('typing-wrap')) c.remove();
   });
 
-  setQR([
-    { label:'📋 Quiero hacer una denuncia',       text:'¿Cómo puedo hacer una denuncia?' },
-    { label:'⚖️ Estado de mi causa judicial',      text:'Quiero consultar el estado de mi causa judicial.' },
-    { label:'👩‍⚖️ Soy abogado/profesional',          text:'Soy abogado y necesito acceder al portal de profesionales.' },
-    { label:'🛡️ Situación de violencia',           text:'Necesito orientación sobre una situación de violencia.' },
-    { label:'🏛️ Consulta general',                 text:'Tengo una consulta general sobre los servicios del MPA.' },
-  ]);
-
   setTimeout(() => {
     showTyping();
     setTimeout(() => {
       hideTyping();
-      addBot('Buenos días. Soy el asistente virtual del Ministerio Público de la Acusación de Santa Fe. Estoy aquí para orientarle sobre los servicios del organismo. ¿En qué puedo ayudarle hoy?');
-    }, 1300);
+      addBot('Hola, soy el asistente virtual del Ministerio Público de la Acusación de Santa Fe. ¿En qué puedo orientarle hoy?');
+    }, 1200);
   }, 350);
 }
 
@@ -490,7 +561,7 @@ function scroll() { const m = document.getElementById('messages'); m.scrollTop =
 
 function linkify(text) {
   return esc(text).replace(
-    /([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}\/[^\s<]*|[a-zA-Z0-9\-\.]+\.(?:gov\.ar|com\.ar|org\.ar|net\.ar)(?=[\s,]|$))/g,
+    /([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}\/[^\s<]*|[a-zA-Z0-9\-\.]+\.(?:gov\.ar|com\.ar|org\.ar|net\.ar)(?=[\s,.\n]|$))/g,
     url => `<a href="https://${url.replace(/^https?:\/\//,'')}" target="_blank" rel="noopener">${url}</a>`
   );
 }
@@ -515,20 +586,6 @@ function hideTyping() {
   st.className = 'header-status';
 }
 
-/* ── QUICK REPLIES ── */
-function setQR(options) {
-  const zone = document.getElementById('qr-zone');
-  zone.innerHTML = '';
-  options.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'qr';
-    btn.textContent = opt.label;
-    btn.onclick = () => { zone.innerHTML = ''; dispatch(opt.text); };
-    zone.appendChild(btn);
-  });
-}
-function clearQR() { document.getElementById('qr-zone').innerHTML = ''; }
-
 /* ── ENVÍO ── */
 function send() {
   const inp = document.getElementById('msg-input');
@@ -536,9 +593,10 @@ function send() {
   if (!text || busy) return;
   inp.value = '';
   inp.style.height = 'auto';
-  clearQR();
   dispatch(text);
 }
+
+const EMERGENCY_RE = /me golpea|me pega|me está golpeando|me amenaza|va a matarme|me va a matar|riesgo de vida|en peligro ahora|está aquí|está en casa|no puedo salir|me tiene encerrada|me tiene encerrado|me está atacando|está por llegar|tengo miedo de que me|me acaba de golpear/i;
 
 function dispatch(text) {
   addUser(text);
@@ -546,8 +604,8 @@ function dispatch(text) {
   busy = true;
   document.getElementById('btn-send').disabled = true;
 
-  if (/me golpea|me pega|me está golpeando|me amenaza|en peligro|me va a matar|tengo miedo|estoy asustada|estoy asustado|está aquí|está en casa|no puedo salir|me tiene encerrada/i.test(text)) {
-    setTimeout(() => addSys('🚨 Situación de posible emergencia — si hay peligro inmediato, llamá al 911 ahora.', true), 200);
+  if (EMERGENCY_RE.test(text)) {
+    setTimeout(() => addSys('🚨 EMERGENCIA — Llamá al 911 ahora. Podés hacerlo aunque no puedas hablar: marcá y dejá la línea abierta.', true), 150);
   }
 
   setTimeout(() => { showTyping(); callApi(); }, 350);
@@ -561,7 +619,7 @@ async function callApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 600,
         system: SYSTEM,
         messages: history
       })
@@ -573,59 +631,21 @@ async function callApi() {
     const reply = data.content[0].text;
     history.push({ role: 'assistant', content: reply });
 
-    const delay = Math.min(2400, Math.max(700, reply.length * 12));
+    const delay = Math.min(2200, Math.max(600, reply.length * 10));
     setTimeout(() => {
       hideTyping();
       addBot(reply);
       busy = false;
       document.getElementById('btn-send').disabled = false;
-      suggestQR(reply);
     }, delay);
 
   } catch (err) {
     console.error(err);
     hideTyping();
-    addBot('En este momento no puedo procesar su consulta. Por favor, intente nuevamente o comuníquese con el MPA directamente.');
+    addBot('En este momento no puedo procesar su consulta. Por favor intente nuevamente o escriba a recompensas@mpa.santafe.gov.ar.');
     busy = false;
     document.getElementById('btn-send').disabled = false;
   }
-}
-
-/* ── QR CONTEXTUALES ── */
-function suggestQR(reply) {
-  const r = reply.toLowerCase();
-  if      (/violencia|maltrato|golpe|abuso|género|peligro|asustad/.test(r))
-    setQR([
-      { label:'📞 Necesito llamar al 911',        text:'Necesito comunicarme con el 911.' },
-      { label:'📋 Quiero hacer una denuncia',     text:'¿Cómo puedo hacer una denuncia por violencia?' },
-      { label:'📧 Contactar por email',           text:'¿Cuál es el correo electrónico para contactarlos?' },
-      { label:'🔄 Otra consulta',                 text:'Tengo otra consulta.' },
-    ]);
-  else if (/denuncia/.test(r))
-    setQR([
-      { label:'💻 Denuncia online',               text:'Quiero hacer la denuncia de forma online.' },
-      { label:'📍 Denuncia presencial',           text:'Prefiero hacer la denuncia de forma presencial.' },
-      { label:'🔄 Otra consulta',                 text:'Tengo otra consulta.' },
-    ]);
-  else if (/muninn|víctima|enrolamiento/.test(r))
-    setQR([
-      { label:'✅ Ya hice el enrolamiento',        text:'Ya realicé el enrolamiento, ¿cómo accedo?' },
-      { label:'❓ Necesito ayuda con el enrolamiento', text:'¿Cómo hago el proceso de enrolamiento?' },
-      { label:'🔄 Otra consulta',                 text:'Tengo otra consulta.' },
-    ]);
-  else if (/huginn|profesional|abogad/.test(r))
-    setQR([
-      { label:'✅ Ya hice el enrolamiento',        text:'Ya realicé el enrolamiento como profesional.' },
-      { label:'❓ ¿Cómo me enrolo?',             text:'¿Cómo es el proceso de enrolamiento para profesionales?' },
-      { label:'🔄 Otra consulta',                 text:'Tengo otra consulta.' },
-    ]);
-  else
-    setQR([
-      { label:'📋 Hacer una denuncia',            text:'¿Cómo puedo hacer una denuncia?' },
-      { label:'⚖️ Estado de mi causa',            text:'Quiero consultar el estado de mi causa judicial.' },
-      { label:'🛡️ Violencia de género',           text:'Necesito orientación sobre violencia de género.' },
-      { label:'🔄 Volver al inicio',              text:'Quiero ver todas las opciones disponibles.' },
-    ]);
 }
 
 /* ── INPUT ── */
