@@ -350,7 +350,7 @@ let busy    = false;
 const SYS = `Sos el asistente virtual del Ministerio Público de la Acusación (MPA) de la Provincia de Santa Fe, Argentina. Orientás a ciudadanos, víctimas y profesionales sobre los servicios del organismo. Solo respondés sobre lo que está en estas instrucciones. Nunca inventés datos, URLs, teléfonos ni pasos que no estén aquí.
 
 ESTILO — MUY IMPORTANTE:
-Tono: cálido y contenedor, pero breve. Una oración cálida cuando corresponda, no más. No sos consejero ni psicólogo.
+Tono: en cada respuesta, incluso las más cortas e informativas, transmitir implícitamente disponibilidad y acompañamiento. No con frases de relleno, sino con la forma de escribir: directa, cálida, sin frialdad burocrática. Que la persona sienta que hay alguien del otro lado dispuesto a ayudarla.
 Registro: formal con "usted".
 Respuestas: cortas y concretas. Máximo 8 líneas. Nunca des todo de una vez.
 Estrategia: primero presentá opciones, luego profundizá solo en la que elige la persona.
@@ -380,15 +380,15 @@ Portal de Profesionales Huginn: mpa.santafe.gov.ar/muninn/login (seleccionar acc
 Requiere enrolamiento. Dudas: recompensas@mpa.santafe.gov.ar
 
 FLUJO 4 — VIOLENCIA DE GÉNERO:
-Si alguien menciona violencia, maltrato, miedo o una situación difícil:
-Si hay peligro inmediato: solo el 911.
-Si no hay peligro inmediato: una oración breve y cálida, luego presentá estas opciones y esperá respuesta:
+Si alguien menciona violencia, maltrato, miedo o agresión de cualquier tipo:
+Paso 1: Respondé con una oración breve y cálida que reconozca lo que está viviendo. Luego preguntá únicamente: "¿Está en peligro en este momento?"
+Paso 2a — Si dice SÍ o que hay peligro inmediato: indicá llamar al 911 ahora. Solo eso.
+Paso 2b — Si dice NO o que está a salvo: ofrecé estas dos opciones solamente:
 "¿Qué necesita en este momento?
-1. Hacer una denuncia.
-2. Saber qué canales y recursos tiene disponibles.
-3. Consultar el estado de una causa."
-No asumas lo que quiere. Esperá que elija antes de dar más información.
-Para aportes sobre causas o recompensas: recompensas@mpa.santafe.gov.ar o llamar al 911.
+1. Hacer una denuncia (online o presencial).
+2. Información sobre canales de orientación y asistencia disponibles."
+Paso 3: Según lo que elija, orientá con la información correspondiente. Para denuncias seguí el FLUJO 1. Para orientación: recompensas@mpa.santafe.gov.ar o llamar al 911.
+Nunca ofrezcas "consultar estado de causa" en este contexto. No asumas lo que necesita. Escuchá y seguí el camino que elija.
 
 CENTROS DE DENUNCIAS — solo usar cuando el usuario elija presencial y diga su ciudad:
 ROSARIO CENTRO/NORTE: CD Mendoza 3538 (0341) 4724568 lun-vie 8-19h sáb 9-12h / CD Corrientes 2114 (0341) 4818686 lun-vie 8-19h
@@ -467,9 +467,6 @@ function addBot(text) {
 function addUsr(text) {
   insert('usr', `<div class="bubble">${esc(text)}</div><div class="meta"><span class="meta-time">${hhmm()}</span><span class="ticks">✓✓</span></div>`);
 }
-function addSos(text) {
-  insert('sos', `<div class="bubble">${esc(text)}</div>`);
-}
 
 function insert(cls, html) {
   const msgs = document.getElementById('msgs');
@@ -509,7 +506,6 @@ function setStatus(txt, dim) {
 }
 
 /* ── ENVÍO ── */
-const EMERGENCY = /me golpea|me pega|me está golpeando|me amenaza|va a matarme|me va a matar|riesgo de vida|en peligro ahora|está aquí|está en casa|no puedo salir|me tiene encerrada|me tiene encerrado|me está atacando|acaba de golpearme|tengo miedo de que me/i;
 
 function send() {
   const el = document.getElementById('txt');
@@ -522,9 +518,6 @@ function send() {
   busy = true;
   document.getElementById('btn-send').disabled = true;
 
-  if (EMERGENCY.test(text)) {
-    setTimeout(() => addSos('🚨 EMERGENCIA — Llamá al 911 ahora. Podés marcar y dejar la línea abierta aunque no puedas hablar.'), 150);
-  }
 
   setTimeout(() => { showTyping(); callApi(); }, 350);
 }
