@@ -221,7 +221,7 @@ async function callBot(userText){
     const resp=await fetch(PROXY_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:SYSTEM,messages:history})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:SYSTEM,messages:history})
     });
     const data=await resp.json();
     if(!resp.ok){hideTyping();showErr(data.error?.message||`Error ${resp.status}`);history.pop();return;}
