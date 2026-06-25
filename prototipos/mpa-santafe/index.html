@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Asistente Virtual MPA — Santa Fe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:           #0b141a;
+      --header:       #202c33;
+      --bubble-bot:   #202c33;
+      --bubble-user:  #005c4b;
+      --input-bar:    #202c33;
+      --input-field:  #2a3942;
+      --btn-bg:       #1a2530;
+      --btn-border:   #2a3942;
+      --btn-text:     #00a884;
+      --text:         #e9edef;
+      --text-dim:     #8696a0;
+      --tick:         #53bdeb;
+      --online:       #25d366;
+      --accent:       #00a884;
+      --accent-dark:  #008f6f;
+      --proto-badge:  #e85d04;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      height: 100dvh;
+      overflow: hidden;
+      color: var(--text);
+    }
+
+    /* Badge — siempre visible */
+    .proto-badge {
+      position: fixed;
+      top: 10px; right: 10px;
+      background: var(--proto-badge);
+      color: #fff;
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 1.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      z-index: 9999;
+      text-transform: uppercase;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(232,93,4,.4);
+    }
+
+    /* Pantallas */
+    .screen { display: none; flex-direction: column; height: 100dvh; width: 100%; }
+    .screen.active { display: flex; }
+
+    /* ── SPLASH ── */
+    #splash {
+      background: linear-gradient(180deg, #0d1f2b 0%, #0b141a 100%);
+      align-items: center; justify-content: center;
+      padding: 32px 24px; overflow-y: auto; gap: 0;
+    }
+
+    .splash-shield {
+      width: 88px; height: 88px;
+      background: linear-gradient(145deg, #1a6fa8, #0d4f7c);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 8px 32px rgba(13,79,124,.5);
+      flex-shrink: 0;
+    }
+
+    .splash-eyebrow {
+      font-size: 10px; font-weight: 600; letter-spacing: 2.5px;
+      color: var(--text-dim); text-transform: uppercase;
+      text-align: center; margin-bottom: 6px;
+    }
+    .splash-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 4px; line-height: 1.2; }
+    .splash-province { font-size: 13px; color: var(--accent); text-align: center; margin-bottom: 28px; font-weight: 500; }
+
+    .splash-card {
+      background: #111c24; border: 1px solid #1e2d38;
+      border-radius: 14px; padding: 18px 16px;
+      width: 100%; max-width: 360px; margin-bottom: 24px;
+    }
+    .splash-card-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+      color: var(--accent); text-transform: uppercase; margin-bottom: 14px;
+    }
+    .flow-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; }
+    .flow-row:last-child { margin-bottom: 0; }
+    .flow-icon { font-size: 17px; flex-shrink: 0; margin-top: 1px; width: 22px; text-align: center; }
+    .flow-label { font-size: 13px; color: #aebac1; line-height: 1.45; }
+
+    .btn-primary {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 26px; padding: 15px 0;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      width: 100%; max-width: 360px;
+      transition: background .2s; letter-spacing: .2px;
+    }
+    .btn-primary:hover  { background: var(--accent-dark); }
+    .btn-primary:active { transform: scale(.98); }
+
+    .splash-dev {
+      margin-top: 28px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .splash-dev-label {
+      font-size: 9px; font-weight: 600; letter-spacing: 2px;
+      color: #3d5462; text-transform: uppercase;
+    }
+    .splash-dev-name {
+      font-size: 12px; font-weight: 600; color: #3d5462; letter-spacing: 1px;
+    }
+
+    /* ── CHAT ── */
+    #chat { position: relative; background: var(--bg); }
+
+    .chat-wallpaper {
+      position: absolute; inset: 56px 0 0 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .chat-header {
+      background: var(--header);
+      display: flex; align-items: center;
+      padding: 10px 14px; gap: 10px;
+      position: relative; z-index: 10; flex-shrink: 0;
+      height: 56px; border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+
+    .header-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(145deg, #1a6fa8, #0d4f7c);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff; letter-spacing: .5px;
+      flex-shrink: 0; box-shadow: 0 0 0 1px rgba(255,255,255,.1);
+    }
+
+    .header-text { flex: 1; min-width: 0; }
+    .header-name { font-size: 15px; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-status { font-size: 12px; color: var(--online); transition: color .3s; }
+    .header-status.typing { color: var(--text-dim); }
+
+    .btn-icon {
+      background: transparent; border: none; color: var(--text-dim);
+      cursor: pointer; width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; transition: background .15s; flex-shrink: 0;
+    }
+    .btn-icon:hover { background: rgba(255,255,255,.07); }
+
+    .messages {
+      flex: 1; overflow-y: auto;
+      padding: 12px 14px 8px;
+      display: flex; flex-direction: column; gap: 3px;
+      position: relative; z-index: 1; scroll-behavior: smooth;
+    }
+    .messages::-webkit-scrollbar { width: 3px; }
+    .messages::-webkit-scrollbar-thumb { background: #2a3942; border-radius: 2px; }
+
+    .date-chip { text-align: center; margin: 6px 0 10px; flex-shrink: 0; }
+    .date-chip span {
+      background: #182229; color: var(--text-dim);
+      font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 8px;
+    }
+
+    .msg { display: flex; flex-direction: column; max-width: 82%; animation: fadeUp .18s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+    .msg.bot  { align-self: flex-start; }
+    .msg.user { align-self: flex-end; }
+    .msg.sys  { align-self: center; max-width: 92%; }
+
+    .bubble { padding: 8px 12px; font-size: 14.5px; line-height: 1.52; word-break: break-word; }
+
+    .msg.bot .bubble  { background: var(--bubble-bot);  border-radius: 2px 14px 14px 14px; color: var(--text); }
+    .msg.user .bubble { background: var(--bubble-user); border-radius: 14px 14px 2px 14px; color: var(--text); }
+    .msg.sys .bubble  {
+      background: rgba(0,168,132,.1); border: 1px solid rgba(0,168,132,.25);
+      border-radius: 10px; color: #7dd3b8; font-size: 12px; text-align: center; padding: 6px 14px;
+    }
+    .msg.emergency .bubble { background: rgba(255,107,107,.1); border: 1px solid rgba(255,107,107,.3); color: #ffaaaa; }
+
+    .bubble a { color: var(--tick); text-decoration: none; border-bottom: 1px solid rgba(83,189,235,.4); word-break: break-all; }
+    .bubble a:hover { border-bottom-color: var(--tick); }
+
+    .msg-meta { display: flex; align-items: center; gap: 3px; margin-top: 3px; justify-content: flex-end; }
+    .msg-time { font-size: 11px; color: var(--text-dim); }
+    .ticks { color: var(--tick); font-size: 13px; line-height: 1; }
+
+    .typing-wrap { align-self: flex-start; display: none; }
+    .typing-wrap.show { display: flex; }
+    .typing-bubble { background: var(--bubble-bot); border-radius: 2px 14px 14px 14px; padding: 12px 16px; display: flex; align-items: center; gap: 5px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); animation: pulse 1.3s infinite ease; }
+    .dot:nth-child(2) { animation-delay: .22s; }
+    .dot:nth-child(3) { animation-delay: .44s; }
+    @keyframes pulse { 0%,75%,100% { transform:translateY(0); opacity:.4; } 38% { transform:translateY(-6px); opacity:1; } }
+
+    .quick-replies {
+      padding: 8px 14px 4px;
+      display: flex; flex-wrap: wrap; gap: 7px;
+      position: relative; z-index: 2; flex-shrink: 0;
+    }
+    .qr {
+      background: var(--btn-bg); border: 1px solid var(--btn-border);
+      color: var(--btn-text); border-radius: 18px; padding: 7px 14px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: background .15s, transform .1s; white-space: nowrap;
+      font-family: 'Inter', sans-serif;
+    }
+    .qr:hover  { background: #1e2f3d; }
+    .qr:active { transform: scale(.96); }
+
+    .input-bar {
+      background: var(--input-bar); padding: 8px 12px;
+      display: flex; align-items: flex-end; gap: 8px;
+      flex-shrink: 0; position: relative; z-index: 10;
+      border-top: 1px solid rgba(255,255,255,.03);
+    }
+    .input-pill {
+      flex: 1; background: var(--input-field); border-radius: 22px;
+      display: flex; align-items: flex-end; padding: 6px 16px; min-height: 44px;
+    }
+    #msg-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: var(--text); font-size: 15px; font-family: 'Inter', sans-serif;
+      resize: none; max-height: 110px; overflow-y: auto;
+      line-height: 1.45; padding: 5px 0;
+    }
+    #msg-input::placeholder { color: var(--text-dim); }
+
+    .btn-send {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: var(--accent); border: none; color: #fff;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background .15s, transform .1s;
+      box-shadow: 0 2px 8px rgba(0,168,132,.3);
+    }
+    .btn-send:hover  { background: var(--accent-dark); }
+    .btn-send:active { transform: scale(.93); }
+    .btn-send:disabled { background: #2a3942; box-shadow: none; cursor: not-allowed; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a3942; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="proto-badge">PROTOTIPO</div>
+
+<!-- ═══════ SPLASH ═══════ -->
+<div id="splash" class="screen active">
+  <div class="splash-shield">
+    <svg width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M23 4L7 11.5V23C7 32.5 14.2 41.3 23 44C31.8 41.3 39 32.5 39 23V11.5L23 4Z"
+            fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.7)" stroke-width="1.4"/>
+      <path d="M16 23.5L21 28.5L31 18" stroke="white" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="splash-eyebrow">Provincia de Santa Fe</div>
+  <div class="splash-title">Asistente Virtual MPA</div>
+  <div class="splash-province">Ministerio Público de la Acusación</div>
+
+  <div class="splash-card">
+    <div class="splash-card-title">¿En qué puedo orientarle?</div>
+    <div class="flow-row"><div class="flow-icon">📋</div><div class="flow-label">Cómo realizar una denuncia, de forma online o presencial</div></div>
+    <div class="flow-row"><div class="flow-icon">⚖️</div><div class="flow-label">Estado de causas judiciales para víctimas de delitos (Portal Muninn)</div></div>
+    <div class="flow-row"><div class="flow-icon">👩‍⚖️</div><div class="flow-label">Acceso y consulta para abogados y profesionales (Portal Huginn)</div></div>
+    <div class="flow-row"><div class="flow-icon">🛡️</div><div class="flow-label">Orientación y acompañamiento en situaciones de violencia de género</div></div>
+    <div class="flow-row"><div class="flow-icon">🏛️</div><div class="flow-label">Consultas sobre servicios e información del organismo</div></div>
+  </div>
+
+  <button class="btn-primary" onclick="launchChat()">Iniciar conversación</button>
+
+  <div class="splash-dev">
+    <div class="splash-dev-label">Desarrollado por</div>
+    <div class="splash-dev-name">ALTEOR SRL</div>
+  </div>
+</div>
+
+<!-- ═══════ CHAT ═══════ -->
+<div id="chat" class="screen">
+  <div class="chat-wallpaper"></div>
+
+  <div class="chat-header">
+    <div class="header-avatar">MPA</div>
+    <div class="header-text">
+      <div class="header-name">Asistente MPA</div>
+      <div class="header-status" id="hdr-status">en línea</div>
+    </div>
+    <button class="btn-icon" onclick="resetChat()" title="Reiniciar conversación">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="date-chip"><span id="date-label"></span></div>
+    <div class="typing-wrap" id="typing">
+      <div class="typing-bubble">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-replies" id="qr-zone"></div>
+
+  <div class="input-bar">
+    <div class="input-pill">
+      <textarea id="msg-input" placeholder="Escribí un mensaje..." rows="1"></textarea>
+    </div>
+    <button class="btn-send" id="btn-send" onclick="send()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+/* ── ESTADO ── */
+let history = [];
+let busy    = false;
+
+/* ── SYSTEM PROMPT ── */
+const SYSTEM = `Sos el asistente virtual del Ministerio Público de la Acusación (MPA) de la Provincia de Santa Fe, Argentina.
+
+Tu función es orientar y acompañar a ciudadanos, víctimas de delitos y profesionales que necesiten acceder a los servicios del organismo. Atendés consultas sobre canales de denuncia, estado de causas judiciales, violencia de género y acceso a portales institucionales del MPA. No tenés acceso a información sobre causas particulares ni brindás asesoramiento legal. No hay derivación a operadores humanos en este canal.
+
+PERSONALIDAD Y ESTILO:
+Tono: cálido, empático y contenedor. Cuando alguien exprese angustia, miedo, dolor o se encuentre en una situación difícil, tu primera respuesta siempre es reconocer lo que está viviendo antes de dar cualquier información. Nunca arranques con información burocrática cuando la persona está sufriendo.
+Registro: formal con "usted", pero sin distancia fría ni lenguaje institucional frío. Como un profesional que genuinamente se preocupa por quien tiene enfrente.
+Idioma: español estándar, sin tecnicismos innecesarios, sin regionalismos. Claro y accesible.
+Longitud: máximo 3 oraciones por mensaje. Si necesitás transmitir más, terminá la respuesta con una pregunta y continuá en el próximo turno.
+Formato: NUNCA uses asteriscos, negritas, listas con guiones, corchetes, markdown de ningún tipo. Solo texto plano, tal como se envía por WhatsApp.
+Nunca des respuestas protocolarias, frías o que suenen a formulario cuando alguien exprese una situación emocional.
+
+FLUJOS PRINCIPALES:
+
+1. HACER UNA DENUNCIA
+Si el usuario quiere realizar o consultar sobre una denuncia:
+Ofrecé dos vías. Online: puede ingresar al Portal de Denuncias del MPA en mpa.santafe.gov.ar/denuncias, que permite denunciar distintos delitos y adjuntar documentación. Presencial: puede acercarse al Centro Territorial de Denuncias (CTD) más cercano; la lista de sedes está en santafe.gov.ar/index.php/web/content/view/full/198373/(subtema)/199106
+Preguntá si prefiere alguna de las dos modalidades o si tiene dudas.
+
+2. ESTADO DE CAUSAS - PORTAL DE LA VÍCTIMA (MUNINN)
+Si el usuario es víctima de un delito y quiere saber el estado de su causa judicial:
+Explicá que el MPA cuenta con el Portal de la Víctima, llamado Muninn, que permite consultar el estado de la causa de manera online. Para utilizarlo es necesario completar un proceso de enrolamiento previo. El portal se accede en mpa.santafe.gov.ar/muninn/login
+Preguntá si ya realizó el enrolamiento o si necesita orientación sobre cómo hacerlo.
+
+3. ACCESO PARA PROFESIONALES - PORTAL HUGINN
+Si el usuario es abogado, abogada, o profesional del derecho que interviene como representante en causas:
+Informá sobre el Portal de Profesionales, llamado Huginn, que permite consultar las causas en las que se interviene como representante. Requiere también un proceso de enrolamiento. El acceso está disponible en mpa.santafe.gov.ar/muninn/login, seleccionando la opción de Portal de Profesionales.
+
+4. VIOLENCIA DE GÉNERO Y SITUACIONES DE MALTRATO
+Si el usuario menciona violencia, maltrato, abuso, violencia doméstica, violencia de género, agresión, que tiene miedo, que está en peligro, o cualquier situación que sugiera que está viviendo o ha vivido violencia:
+
+PRIMERO Y SIEMPRE: Reconocé lo que está viviendo con calidez real. Validá su valentía de haber consultado. No minimices, no normalices, no apurés. Frases como "Gracias por animarse a escribirnos. Lo que me cuenta es muy serio y queremos que sepa que no está sola/solo" son el tipo de apertura que corresponde.
+
+SEGUNDO: Evaluá la urgencia según lo que la persona exprese:
+Si describe una situación de peligro inmediato o una crisis en curso: señalá claramente y sin rodeos que puede llamar al 911 en ese momento, que es el número de emergencias disponible las 24 horas.
+Si está buscando orientación, salida, o quiere denunciar: ofrecé los canales disponibles: denuncia online o presencial (ver Flujo 1), y el correo recompensas@mpa.santafe.gov.ar para aportar información sobre causas o programas de recompensas.
+Siempre preguntá cómo podés ayudarla/ayudarlo a avanzar desde donde está ahora.
+
+5. CONSULTAS INSTITUCIONALES GENERALES
+Para consultas sobre las funciones del MPA, sus áreas, horarios, cobertura territorial u orientación ciudadana general: respondé con claridad, sé accesible y ofrecé profundizar si es necesario.
+
+MANEJO DE SITUACIONES ESPECIALES:
+Si alguien está muy angustiado y no formula una consulta clara: escuchá, validá y preguntá cómo podés ayudarle concretamente.
+Si alguien pregunta algo que cae fuera del alcance del MPA: explicá amablemente que solo podés orientar sobre los servicios del organismo, y sugerí dónde puede encontrar ayuda si lo sabés.
+Si alguien pregunta sobre el estado de una causa específica mencionando números o datos: explicá que no tenés acceso a expedientes particulares y derivá al Portal Muninn o a la fiscalía interviniente.
+
+RESTRICCIONES ABSOLUTAS:
+Nunca compartás información sobre causas judiciales particulares.
+Nunca brindés asesoramiento legal específico sobre el caso de nadie.
+Nunca cuestionés, minimizés ni pongas en duda el relato de alguien que expresa haber sufrido violencia.
+Nunca respondas de forma fría, protocolar o burocrática ante situaciones de angustia o emergencia.
+Nunca uses markdown, asteriscos, negritas, guiones de lista ni formato especial de ningún tipo.
+En situaciones de peligro inmediato, el 911 siempre es el primer recurso a mencionar, sin preámbulos.
+Nunca inventés información, URLs ni datos que no estén en estas instrucciones.`;
+
+/* ── NAVEGACIÓN ── */
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function launchChat() { show('chat'); initChat(); }
+
+/* ── CHAT ── */
+function initChat() {
+  history = [];
+  document.getElementById('qr-zone').innerHTML = '';
+
+  const d = new Date();
+  document.getElementById('date-label').textContent =
+    'Hoy, ' + d.toLocaleDateString('es-AR', { day:'numeric', month:'long', year:'numeric' });
+
+  const msgs = document.getElementById('messages');
+  Array.from(msgs.children).forEach(c => {
+    if (!c.classList.contains('date-chip') && !c.classList.contains('typing-wrap')) c.remove();
+  });
+
+  setQR([
+    { label:'📋 Quiero hacer una denuncia',       text:'¿Cómo puedo hacer una denuncia?' },
+    { label:'⚖️ Estado de mi causa judicial',      text:'Quiero consultar el estado de mi causa judicial.' },
+    { label:'👩‍⚖️ Soy abogado/profesional',          text:'Soy abogado y necesito acceder al portal de profesionales.' },
+    { label:'🛡️ Situación de violencia',           text:'Necesito orientación sobre una situación de violencia.' },
+    { label:'🏛️ Consulta general',                 text:'Tengo una consulta general sobre los servicios del MPA.' },
+  ]);
+
+  setTimeout(() => {
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      addBot('Buenos días. Soy el asistente virtual del Ministerio Público de la Acusación de Santa Fe. Estoy aquí para orientarle sobre los servicios del organismo. ¿En qué puedo ayudarle hoy?');
+    }, 1300);
+  }, 350);
+}
+
+function resetChat() { initChat(); }
+
+/* ── MENSAJES ── */
+function now() {
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function addBot(text) {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg bot';
+  el.innerHTML = `<div class="bubble">${linkify(text)}</div>
+    <div class="msg-meta"><span class="msg-time">${now()}</span></div>`;
+  msgs.insertBefore(el, document.getElementById('typing'));
+  scroll();
+}
+
+function addUser(text) {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `<div class="bubble">${esc(text)}</div>
+    <div class="msg-meta"><span class="msg-time">${now()}</span><span class="ticks">✓✓</span></div>`;
+  msgs.insertBefore(el, document.getElementById('typing'));
+  scroll();
+}
+
+function addSys(text, emergency = false) {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = emergency ? 'msg sys emergency' : 'msg sys';
+  el.innerHTML = `<div class="bubble">${esc(text)}</div>`;
+  msgs.insertBefore(el, document.getElementById('typing'));
+  scroll();
+}
+
+function scroll() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
+
+function linkify(text) {
+  return esc(text).replace(
+    /([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}\/[^\s<]*|[a-zA-Z0-9\-\.]+\.(?:gov\.ar|com\.ar|org\.ar|net\.ar)(?=[\s,]|$))/g,
+    url => `<a href="https://${url.replace(/^https?:\/\//,'')}" target="_blank" rel="noopener">${url}</a>`
+  );
+}
+
+function esc(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+/* ── TYPING ── */
+function showTyping() {
+  document.getElementById('typing').classList.add('show');
+  const st = document.getElementById('hdr-status');
+  st.textContent = 'escribiendo...';
+  st.className = 'header-status typing';
+  scroll();
+}
+function hideTyping() {
+  document.getElementById('typing').classList.remove('show');
+  const st = document.getElementById('hdr-status');
+  st.textContent = 'en línea';
+  st.className = 'header-status';
+}
+
+/* ── QUICK REPLIES ── */
+function setQR(options) {
+  const zone = document.getElementById('qr-zone');
+  zone.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'qr';
+    btn.textContent = opt.label;
+    btn.onclick = () => { zone.innerHTML = ''; dispatch(opt.text); };
+    zone.appendChild(btn);
+  });
+}
+function clearQR() { document.getElementById('qr-zone').innerHTML = ''; }
+
+/* ── ENVÍO ── */
+function send() {
+  const inp = document.getElementById('msg-input');
+  const text = inp.value.trim();
+  if (!text || busy) return;
+  inp.value = '';
+  inp.style.height = 'auto';
+  clearQR();
+  dispatch(text);
+}
+
+function dispatch(text) {
+  addUser(text);
+  history.push({ role: 'user', content: text });
+  busy = true;
+  document.getElementById('btn-send').disabled = true;
+
+  if (/me golpea|me pega|me está golpeando|me amenaza|en peligro|me va a matar|tengo miedo|estoy asustada|estoy asustado|está aquí|está en casa|no puedo salir|me tiene encerrada/i.test(text)) {
+    setTimeout(() => addSys('🚨 Situación de posible emergencia — si hay peligro inmediato, llamá al 911 ahora.', true), 200);
+  }
+
+  setTimeout(() => { showTyping(); callApi(); }, 350);
+}
+
+/* ── API (proxy Netlify) ── */
+async function callApi() {
+  try {
+    const res = await fetch('/.netlify/functions/anthropic-proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: history
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const reply = data.content[0].text;
+    history.push({ role: 'assistant', content: reply });
+
+    const delay = Math.min(2400, Math.max(700, reply.length * 12));
+    setTimeout(() => {
+      hideTyping();
+      addBot(reply);
+      busy = false;
+      document.getElementById('btn-send').disabled = false;
+      suggestQR(reply);
+    }, delay);
+
+  } catch (err) {
+    console.error(err);
+    hideTyping();
+    addBot('En este momento no puedo procesar su consulta. Por favor, intente nuevamente o comuníquese con el MPA directamente.');
+    busy = false;
+    document.getElementById('btn-send').disabled = false;
+  }
+}
+
+/* ── QR CONTEXTUALES ── */
+function suggestQR(reply) {
+  const r = reply.toLowerCase();
+  if      (/violencia|maltrato|golpe|abuso|género|peligro|asustad/.test(r))
+    setQR([
+      { label:'📞 Necesito llamar al 911',        text:'Necesito comunicarme con el 911.' },
+      { label:'📋 Quiero hacer una denuncia',     text:'¿Cómo puedo hacer una denuncia por violencia?' },
+      { label:'📧 Contactar por email',           text:'¿Cuál es el correo electrónico para contactarlos?' },
+      { label:'🔄 Otra consulta',                 text:'Tengo otra consulta.' },
+    ]);
+  else if (/denuncia/.test(r))
+    setQR([
+      { label:'💻 Denuncia online',               text:'Quiero hacer la denuncia de forma online.' },
+      { label:'📍 Denuncia presencial',           text:'Prefiero hacer la denuncia de forma presencial.' },
+      { label:'🔄 Otra consulta',                 text:'Tengo otra consulta.' },
+    ]);
+  else if (/muninn|víctima|enrolamiento/.test(r))
+    setQR([
+      { label:'✅ Ya hice el enrolamiento',        text:'Ya realicé el enrolamiento, ¿cómo accedo?' },
+      { label:'❓ Necesito ayuda con el enrolamiento', text:'¿Cómo hago el proceso de enrolamiento?' },
+      { label:'🔄 Otra consulta',                 text:'Tengo otra consulta.' },
+    ]);
+  else if (/huginn|profesional|abogad/.test(r))
+    setQR([
+      { label:'✅ Ya hice el enrolamiento',        text:'Ya realicé el enrolamiento como profesional.' },
+      { label:'❓ ¿Cómo me enrolo?',             text:'¿Cómo es el proceso de enrolamiento para profesionales?' },
+      { label:'🔄 Otra consulta',                 text:'Tengo otra consulta.' },
+    ]);
+  else
+    setQR([
+      { label:'📋 Hacer una denuncia',            text:'¿Cómo puedo hacer una denuncia?' },
+      { label:'⚖️ Estado de mi causa',            text:'Quiero consultar el estado de mi causa judicial.' },
+      { label:'🛡️ Violencia de género',           text:'Necesito orientación sobre violencia de género.' },
+      { label:'🔄 Volver al inicio',              text:'Quiero ver todas las opciones disponibles.' },
+    ]);
+}
+
+/* ── INPUT ── */
+const inp = document.getElementById('msg-input');
+inp.addEventListener('input', function() { this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,110)+'px'; });
+inp.addEventListener('keydown', function(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+</script>
+</body>
+</html>
