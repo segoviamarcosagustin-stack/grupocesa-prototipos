@@ -269,23 +269,30 @@
 const MOCK_DATA = {
   usuario: "Elsa",
   relacion_con_familiar: "mamá",
+  nombre_familiar: "Marcos",
   hoy: "jueves",
+  lugares_frecuentes: [
+    { nombre: "casa", direccion: "Av. Rivadavia 5240, Caballito" },
+    { nombre: "la farmacia habitual", direccion: "Av. Rivadavia 5100, Caballito" },
+    { nombre: "el centro de jubilados \"Los Aromos\"", direccion: "Av. Acoyte 230, Caballito" },
+    { nombre: "la casa de Silvia (su hermana)", direccion: "Bacacay 780, Flores" }
+  ],
   ubicacion_actual: {
     direccion: "Av. Rivadavia 5240, Caballito",
     minutos_en_este_lugar: 35,
     actualizado_hace_minutos: 2
   },
   historial_ubicacion_hoy: [
-    { hora: "07:20", evento: "Se levantó — en el domicilio (Av. Rivadavia 5240)" },
-    { hora: "10:10", evento: "Salió del domicilio" },
-    { hora: "10:35", evento: "Av. Acoyte 230, Caballito — a 400m del domicilio" },
-    { hora: "12:30", evento: "Regresó al domicilio" },
-    { hora: "14:14", evento: "Av. Rivadavia 5240, Caballito (ubicación actual)" }
+    { hora: "07:20", evento: "Se levantó — en casa" },
+    { hora: "10:10", evento: "Salió de casa" },
+    { hora: "10:35", evento: "Llegó al centro de jubilados \"Los Aromos\" (Av. Acoyte 230)" },
+    { hora: "12:30", evento: "Volvió a casa" },
+    { hora: "14:14", evento: "En casa (ubicación actual)" }
   ],
   historial_ubicacion_ayer: [
-    { hora: "09:00", evento: "En el domicilio" },
-    { hora: "11:15", evento: "Farmacia — Av. Rivadavia 5100, Caballito" },
-    { hora: "11:50", evento: "Regresó al domicilio" }
+    { hora: "09:00", evento: "En casa" },
+    { hora: "11:15", evento: "En la farmacia habitual (Av. Rivadavia 5100)" },
+    { hora: "11:50", evento: "Volvió a casa" }
   ],
   actividad_hoy: {
     pasos_hasta_ahora: 1820,
@@ -303,13 +310,13 @@ const MOCK_DATA = {
     alertas_por_presion_semana: 0
   },
   historial_semana: [
-    { dia: "viernes", pasos: 2450, presion_promedio: "121/78 mmHg", frecuencia_cardiaca_promedio: "75 bpm" },
-    { dia: "sábado", pasos: 1980, presion_promedio: "120/77 mmHg", frecuencia_cardiaca_promedio: "74 bpm" },
-    { dia: "domingo", pasos: 1600, presion_promedio: "123/80 mmHg", frecuencia_cardiaca_promedio: "76 bpm" },
-    { dia: "lunes", pasos: 2100, presion_promedio: "118/76 mmHg", frecuencia_cardiaca_promedio: "74 bpm" },
-    { dia: "martes", pasos: 2300, presion_promedio: "134/86 mmHg", frecuencia_cardiaca_promedio: "88 bpm", nota: "pico del día, correlaciona con la alerta transitoria de frecuencia cardíaca registrada a las 09:31" },
-    { dia: "miércoles", pasos: 1750, presion_promedio: "121/79 mmHg", frecuencia_cardiaca_promedio: "75 bpm" },
-    { dia: "jueves (hoy, parcial hasta las 14:14)", pasos: 1820, presion_promedio: "122/79 mmHg", frecuencia_cardiaca_promedio: "76 bpm" }
+    { dia: "viernes", pasos: 2450, presion_promedio: "121/78 mmHg", frecuencia_cardiaca_promedio: "75 bpm", medicacion_cumplida: "3/3" },
+    { dia: "sábado", pasos: 1980, presion_promedio: "120/77 mmHg", frecuencia_cardiaca_promedio: "74 bpm", medicacion_cumplida: "3/3" },
+    { dia: "domingo", pasos: 1600, presion_promedio: "123/80 mmHg", frecuencia_cardiaca_promedio: "76 bpm", medicacion_cumplida: "2/3", nota: "no se confirmó la toma de la noche" },
+    { dia: "lunes", pasos: 2100, presion_promedio: "118/76 mmHg", frecuencia_cardiaca_promedio: "74 bpm", medicacion_cumplida: "3/3" },
+    { dia: "martes", pasos: 2300, presion_promedio: "134/86 mmHg", frecuencia_cardiaca_promedio: "88 bpm", medicacion_cumplida: "2/3", nota: "la toma de la mañana se confirmó con demora; a las 09:30 se registró el pico de presión y frecuencia cardíaca de la semana, volvió a rango normal 20 minutos después (ver alertas_semana)" },
+    { dia: "miércoles", pasos: 1750, presion_promedio: "121/79 mmHg", frecuencia_cardiaca_promedio: "75 bpm", medicacion_cumplida: "3/3" },
+    { dia: "jueves (hoy, parcial hasta las 14:14)", pasos: 1820, presion_promedio: "122/79 mmHg", frecuencia_cardiaca_promedio: "76 bpm", medicacion_cumplida: "2/3 hasta ahora" }
   ],
   medicacion_hoy: [
     { hora_programada: "08:00", confirmado: true, hora_confirmacion: "08:03" },
@@ -358,21 +365,23 @@ Usá el JSON de DATOS DISPONIBLES para resolver estas categorías (y sus variaci
 - get_alerts: alertas de la semana.
 - get_geofence: si salió del radio configurado y dónde.
 
-Manejo de saludos sin consulta: si el mensaje es solo un saludo o apertura sin pregunta concreta (ej. "hola", "buenas", "hey", "necesito ayuda"), NO asumas ninguna categoría ni tires ningún dato todavía. Respondé con un saludo corto y cálido seguido de un menú visual, una línea por categoría con su emoji, para que la persona sepa qué puede preguntar. Formato (usar saltos de línea reales, sin markdown):
-"¡Hola! 👋 Puedo contarte sobre Elsa:
+Manejo de saludos sin consulta: si el mensaje es solo un saludo o apertura sin pregunta concreta (ej. "hola", "buenas", "hey", "necesito ayuda"), NO asumas ninguna categoría ni tires ningún dato todavía. La plataforma ya tiene registrado el usuario que escribe (nombre_familiar en el JSON), así que saludalo por su nombre — no es un bot anónimo. Respondé con un saludo cálido personalizado seguido de un menú visual, una línea por categoría con su emoji. Formato (usar saltos de línea reales, sin markdown):
+"¡Hola, [nombre_familiar]! 👋 ¿Cómo estás? Tengo esta información sobre [usuario]:
 📍 Ubicación
 🩺 Presión y frecuencia cardíaca
 🚶 Actividad y pasos
 💊 Medicación
 🔋 Batería y señal del reloj
 ⚠️ Alertas de la semana
-¿Sobre qué querés saber?"
-Este menú es siempre el mismo (las 6 categorías), no hace falta variarlo.
+¿De qué querés que te cuente?"
+Este menú es siempre el mismo (las 6 categorías), no hace falta variarlo. Reemplazá [nombre_familiar] y [usuario] por los valores reales del JSON.
+
+Manejo de ubicación — lugares frecuentes: la plataforma guarda lugares frecuentes cargados por el familiar (como en Google Maps/Waze: casa, farmacia, etc. — ver lugares_frecuentes en el JSON). Si la dirección donde está Elsa coincide con un lugar frecuente, respondé con ese nombre ("Está en casa", "Está en el centro de jubilados") — nunca con la dirección cruda cuando hay un nombre disponible. Solo mencioná la dirección textual si el lugar NO está en lugares_frecuentes.
 
 Manejo de ambigüedad con contenido: distinto del caso anterior, si el mensaje SÍ tiene una pregunta implícita aunque genérica (ej. "¿cómo está?", "¿todo bien?"), ahí sí asumí la lectura más razonable (estado general = últimos signos vitales + ubicación) y respondé con el dato, sin pedir aclaración, en 1-2 líneas cortas con su emoji.
 
 Manejo de consultas amplias ("qué más me podés decir", "dame toda la información de mamá", "contame todo"): respondé en formato checklist, una línea por categoría con su emoji y el dato concreto (no solo el nombre de la categoría), cada línea bien corta. Ejemplo:
-"📍 Está en Av. Rivadavia 5240, hace 35 min
+"📍 Está en casa, hace 35 min
 🩺 Presión 122/79, dentro de rango
 🚶 1.820 pasos hoy, un poco por debajo de lo habitual
 💊 Tomó la de la mañana y la tarde, falta la de las 20:00
