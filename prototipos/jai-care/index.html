@@ -2,591 +2,455 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>JaiCARE — Asistente de consultas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title></title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0b141a;
-    --header:#202c33;
-    --bubble-bot:#202c33;
-    --bubble-user:#005c4b;
-    --tick-read:#53bdeb;
-    --online:#25d366;
-    --btn-bg:#1a2530;
-    --btn-border:#2a3942;
-    --btn-text:#00a884;
-    --input-bar:#202c33;
-    --input-field:#2a3942;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  html,body{height:100%;}
-  body{
-    font-family:'Inter',sans-serif;
-    background:var(--bg);
-    color:#e9edef;
-    overflow:hidden;
-  }
-  #app{
-    position:fixed; inset:0;
-    display:flex; flex-direction:column;
-    height:100dvh;
-    max-width:480px; margin:0 auto;
-    background:var(--bg);
-  }
+:root{
+  --bg:#0b141a;--header:#202c33;--bot-bub:#202c33;--usr-bub:#005c4b;
+  --input-bar:#202c33;--input-field:#2a3942;--text:#e9edef;--dim:#8696a0;
+  --tick:#53bdeb;--online:#25d366;--primary:#25d366;--primary-dk:#1fa855;
+  --badge-bg:rgba(37,211,102,.1);--badge-color:#25d366;
+  --hbadge-bg:rgba(37,211,102,.15);--hbadge-color:#25d366;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:#060d11;font-family:'Inter',sans-serif;color:var(--text);}
+#app{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+@media(min-width:500px){#app{top:50%;transform:translate(-50%,-50%);height:92dvh;border-radius:16px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 32px 80px rgba(0,0,0,.6);}}
+.proto-badge{position:absolute;top:10px;right:10px;z-index:9999;background:#e85d04;color:#fff;font-size:9px;font-weight:700;letter-spacing:1.5px;padding:3px 8px;border-radius:4px;text-transform:uppercase;pointer-events:none;}
+.screen{display:none;flex-direction:column;width:100%;height:100%;flex-shrink:0;}
+.screen.on{display:flex;}
 
-  /* ---------- SPLASH ---------- */
-  #splash{
-    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:32px 28px; text-align:center; height:100dvh;
-    background:radial-gradient(circle at 50% 20%, #132630 0%, #0b141a 70%);
-  }
-  .splash-badge{
-    display:inline-block; background:#1a3a2f; color:var(--online);
-    font-size:11px; font-weight:600; letter-spacing:.06em;
-    padding:4px 10px; border-radius:20px; margin-bottom:22px;
-  }
-  .splash-icon{
-    width:78px; height:78px; border-radius:50%;
-    background:linear-gradient(135deg,#0f2f3d,#123c4d);
-    display:flex; align-items:center; justify-content:center;
-    font-size:34px; margin-bottom:20px;
-    border:1px solid #1f3a45;
-  }
-  .jaicare-logo-wrap{
-    background:#f4f7f9; border-radius:16px;
-    padding:16px 22px 14px; margin-bottom:18px;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 4px 18px rgba(0,0,0,.25);
-  }
-  .jaicare-logo-wrap svg{width:210px; height:auto; display:block;}
-  .splash-title{font-size:22px; font-weight:700; margin-bottom:4px;}
-  .splash-sub{font-size:13px; color:#8696a0; margin-bottom:22px;}
-  .splash-desc{font-size:14.5px; color:#c9d1d5; line-height:1.55; margin-bottom:30px; max-width:340px;}
-  .btn-start{
-    background:var(--online); color:#08130d; border:none;
-    font-size:15px; font-weight:700; padding:13px 34px; border-radius:26px;
-    cursor:pointer; letter-spacing:.02em;
-  }
-  .btn-start:active{transform:scale(0.97);}
-  .splash-footer{
-    position:absolute; bottom:26px; left:0; right:0;
-    display:flex; flex-direction:column; align-items:center; gap:10px;
-  }
-  .footer-label{font-size:10px; letter-spacing:.12em; color:#5b6b73;}
-  .gcs-logo{display:flex; align-items:center; gap:6px; opacity:.85;}
-  .gcs-logo svg{height:20px; width:auto;}
+/* SPLASH */
+#splash{background:linear-gradient(180deg,#0d1f2b 0%,#0b141a 100%);align-items:center;justify-content:center;padding:32px 24px;overflow-y:auto;gap:0;text-align:center;}
+.sp-avatar{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 8px 32px rgba(0,0,0,.4);}
+.sp-avatar-emoji{font-size:36px;}
+.sp-avatar-initials{font-size:18px;font-weight:700;letter-spacing:.5px;color:#fff;}
+.sp-logo-wrap{border-radius:16px;padding:16px 22px 14px;margin-bottom:18px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.25);}
+.sp-logo-wrap svg{max-width:220px;height:auto;display:block;}
+.sp-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:2px;padding:4px 12px;border-radius:20px;margin-bottom:16px;text-transform:uppercase;}
+.sp-title{font-size:24px;font-weight:700;margin-bottom:4px;}
+.sp-sub{font-size:13px;color:var(--primary);font-weight:500;margin-bottom:8px;}
+.sp-desc{font-size:14px;color:#aebac1;line-height:1.55;margin-bottom:24px;max-width:340px;}
+.sp-card{background:#111c24;border:1px solid #1e2d38;border-radius:14px;padding:16px;width:100%;max-width:360px;margin-bottom:22px;text-align:left;}
+.sp-card-title{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--primary);text-transform:uppercase;margin-bottom:12px;}
+.sp-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.sp-row:last-child{margin-bottom:0;}
+.sp-row-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center;margin-top:1px;}
+.sp-row-text{font-size:13px;color:#aebac1;line-height:1.4;}
+.btn-start{background:var(--primary);color:#fff;border:none;border-radius:26px;padding:14px 0;font-size:15px;font-weight:600;cursor:pointer;width:100%;max-width:360px;transition:background .2s;font-family:inherit;}
+.btn-start:hover{background:var(--primary-dk);}
+.btn-start:active{transform:scale(.97);}
+.sp-footer{margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.sp-footer-label{font-size:9px;font-weight:600;letter-spacing:2px;color:#3d5462;text-transform:uppercase;}
+.sp-footer-name{font-size:12px;font-weight:600;color:#4d6472;letter-spacing:.5px;}
 
-  /* ---------- CHAT ---------- */
-  #chat{display:none; flex-direction:column; height:100dvh;}
-  #chat.active{display:flex;}
+/* CHAT */
+#chat{background:var(--bg);}
+.wlp{position:absolute;inset:56px 0 0 0;pointer-events:none;z-index:0;background-image:radial-gradient(circle,rgba(255,255,255,.015) 1px,transparent 1px);background-size:28px 28px;}
+.ch-header{background:var(--header);display:flex;align-items:center;gap:10px;padding:0 14px;height:56px;flex-shrink:0;position:relative;z-index:10;border-bottom:1px solid rgba(255,255,255,.04);}
+.ch-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.ch-avatar-emoji{font-size:20px;}
+.ch-avatar-initials{font-size:12px;font-weight:700;letter-spacing:.5px;color:#fff;}
+.ch-info{flex:1;min-width:0;}
+.ch-name{font-size:15px;font-weight:600;line-height:1.2;}
+.ch-status{font-size:12px;color:var(--online);}
+.ch-status.typing{color:var(--dim);}
+.header-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;letter-spacing:.04em;white-space:nowrap;}
+.btn-reset{background:none;border:none;color:var(--dim);cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;font-size:18px;}
+.btn-reset:hover{background:rgba(255,255,255,.07);}
 
-  .wa-header{
-    background:var(--header); padding:10px 14px;
-    display:flex; align-items:center; gap:10px;
-    flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,.3); z-index:5;
-  }
-  .bot-avatar{
-    width:38px; height:38px; border-radius:50%;
-    background:linear-gradient(135deg,#0f2f3d,#123c4d);
-    display:flex; align-items:center; justify-content:center; font-size:19px;
-    flex-shrink:0;
-  }
-  .bot-info{flex:1; min-width:0;}
-  .bot-name{font-size:15px; font-weight:600; line-height:1.2;}
-  .bot-status{font-size:12px; color:var(--online); line-height:1.3;}
-  .bot-status.typing{color:#8696a0;}
-  .header-badge{
-    background:#3a2a12; color:#e0a94b; font-size:10px; font-weight:700;
-    padding:3px 8px; border-radius:12px; letter-spacing:.04em; white-space:nowrap;
-  }
-  .btn-action{
-    background:none; border:none; color:#aebac1; font-size:19px;
-    cursor:pointer; padding:4px 6px; flex-shrink:0;
-  }
+.msgs{flex:1;overflow-y:auto;padding:12px 14px 8px;display:flex;flex-direction:column;gap:3px;position:relative;z-index:1;}
+.msgs::-webkit-scrollbar{width:3px;}
+.msgs::-webkit-scrollbar-thumb{background:#2a3942;border-radius:2px;}
+.sys-note,.ai-note{align-self:center;background:#182229;color:var(--dim);font-size:11.5px;padding:6px 12px;border-radius:8px;margin:4px auto 3px;max-width:88%;text-align:center;line-height:1.4;}
+.ai-note{color:#6fa89a;}
+.date-chip{text-align:center;margin:4px 0 10px;}
+.date-chip span{background:#182229;color:var(--dim);font-size:11px;font-weight:500;padding:4px 12px;border-radius:8px;}
 
-  .wa-messages{
-    flex:1; overflow-y:auto; padding:14px 10px 8px;
-    background-image:
-      radial-gradient(circle at 20% 10%, rgba(255,255,255,.015) 0, transparent 40%),
-      radial-gradient(circle at 80% 90%, rgba(255,255,255,.015) 0, transparent 40%);
-    display:flex; flex-direction:column;
-  }
-  .sys-note, .ai-note{
-    align-self:center; background:#182229; color:#8696a0;
-    font-size:11.5px; padding:6px 12px; border-radius:8px;
-    margin:4px auto 3px; max-width:88%; text-align:center; line-height:1.4;
-  }
-  .ai-note{color:#6fa89a;}
+.chip-row{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:10px 4px 4px;padding:0 4px;}
+.chip{background:#1a2530;border:1px solid #2a3942;color:var(--primary);font-size:12.5px;padding:8px 13px;border-radius:16px;cursor:pointer;font-family:inherit;}
+.chip:active{transform:scale(.97);}
 
-  .chip-row{
-    display:flex; flex-wrap:wrap; gap:7px; justify-content:center;
-    margin:10px 4px 4px; padding:0 4px;
-  }
-  .chip{
-    background:var(--btn-bg); border:1px solid var(--btn-border); color:var(--btn-text);
-    font-size:12.5px; padding:8px 13px; border-radius:16px; cursor:pointer;
-  }
-  .chip:active{transform:scale(0.97);}
+.msg{display:flex;flex-direction:column;max-width:82%;animation:fadeUp .18s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.msg.bot{align-self:flex-start;}
+.msg.usr{align-self:flex-end;}
+.bubble{padding:8px 12px;font-size:14.5px;line-height:1.5;word-break:break-word;white-space:pre-wrap;}
+.msg.bot .bubble{background:var(--bot-bub);border-radius:2px 14px 14px 14px;}
+.msg.usr .bubble{background:var(--usr-bub);border-radius:14px 14px 2px 14px;}
+.bubble a{color:var(--tick);text-decoration:none;border-bottom:1px solid rgba(83,189,235,.4);}
+.meta{display:flex;align-items:center;gap:3px;justify-content:flex-end;margin-top:3px;}
+.meta-time{font-size:11px;color:var(--dim);}
+.ticks{font-size:13px;color:var(--tick);}
 
-  .msg-row{display:flex; margin:3px 0; max-width:100%;}
-  .msg-row.bot{justify-content:flex-start;}
-  .msg-row.user{justify-content:flex-end;}
-  .bubble{
-    max-width:78%; padding:7px 9px 6px 10px; font-size:14.3px; line-height:1.42;
-    position:relative; word-wrap:break-word; white-space:pre-wrap;
-  }
-  .bubble.bot{background:var(--bubble-bot); border-radius:16px 16px 16px 3px;}
-  .bubble.user{background:var(--bubble-user); border-radius:16px 16px 3px 16px;}
-  .bubble-meta{
-    display:flex; justify-content:flex-end; align-items:center; gap:3px;
-    font-size:10.5px; color:#8696a0; margin-top:3px;
-  }
-  .bubble.user .bubble-meta{color:#a9d9cf;}
-  .ticks{color:var(--tick-read); font-size:13px;}
+.typing-ind{align-self:flex-start;display:none;}
+.typing-ind.on{display:flex;}
+.typing-bub{background:var(--bot-bub);border-radius:2px 14px 14px 14px;padding:12px 16px;display:flex;align-items:center;gap:5px;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--dim);animation:blink 1.3s infinite;}
+.dot:nth-child(2){animation-delay:.22s;}.dot:nth-child(3){animation-delay:.44s;}
+@keyframes blink{0%,75%,100%{opacity:.35;}38%{opacity:1;transform:translateY(-5px);}}
 
-  .typing-row{display:flex; margin:3px 0; justify-content:flex-start;}
-  .typing-bubble{
-    background:var(--bubble-bot); border-radius:16px 16px 16px 3px; padding:10px 14px;
-    display:flex; gap:4px; align-items:center;
-  }
-  .typing-dot{
-    width:6px; height:6px; border-radius:50%; background:#8696a0;
-    animation:blink 1.2s infinite ease-in-out;
-  }
-  .typing-dot:nth-child(2){animation-delay:.2s;}
-  .typing-dot:nth-child(3){animation-delay:.4s;}
-  @keyframes blink{0%,80%,100%{opacity:.3;}40%{opacity:1;}}
+.restart-btn{align-self:center;margin:14px auto 4px;font-size:12px;color:#6fa89a;background:none;border:1px solid #21403a;padding:6px 14px;border-radius:14px;cursor:pointer;font-family:inherit;}
 
-  .restart-inline{
-    align-self:center; margin:14px auto 4px; font-size:12px; color:#6fa89a;
-    background:none; border:1px solid #21403a; padding:6px 14px; border-radius:14px;
-    cursor:pointer;
-  }
-
-  .wa-input{
-    flex-shrink:0; background:var(--input-bar); padding:8px 10px;
-    display:flex; align-items:center; gap:8px;
-    padding-bottom:calc(8px + env(safe-area-inset-bottom));
-  }
-  .chat-input{
-    flex:1; background:var(--input-field); border:none; border-radius:22px;
-    padding:11px 16px; color:#e9edef; font-size:14.5px; outline:none;
-    font-family:'Inter',sans-serif;
-  }
-  .chat-input::placeholder{color:#7d8b93;}
-  .btn-send{
-    width:40px; height:40px; border-radius:50%; border:none;
-    background:var(--online); color:#08130d; font-size:17px;
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-    flex-shrink:0;
-  }
-  .btn-send:disabled{opacity:.45; cursor:default;}
-
-  ::-webkit-scrollbar{width:5px;}
-  ::-webkit-scrollbar-thumb{background:#2a3942; border-radius:3px;}
+.input-bar{background:var(--input-bar);padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;z-index:10;border-top:1px solid rgba(255,255,255,.04);padding-bottom:calc(8px + env(safe-area-inset-bottom));}
+.input-wrap{flex:1;min-width:0;background:var(--input-field);border-radius:22px;display:flex;align-items:center;padding:0 16px;min-height:44px;}
+#txt{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;font-family:'Inter',sans-serif;resize:none;overflow-y:auto;line-height:1.45;padding:11px 0;max-height:100px;}
+#txt::placeholder{color:var(--dim);}
+.btn-send{width:44px;height:44px;min-width:44px;border-radius:50%;border:none;background:var(--primary);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.btn-send:hover{background:var(--primary-dk);}
+.btn-send:active{transform:scale(.93);}
+.btn-send:disabled{background:#2a3942;box-shadow:none;cursor:default;}
 </style>
 </head>
 <body>
-
 <div id="app">
+  <div class="proto-badge">PROTOTIPO</div>
 
-  <!-- SPLASH -->
-  <div id="splash">
-    <div class="splash-badge">IA · PROTOTIPO</div>
-    <div class="jaicare-logo-wrap">
-      <svg xmlns="http://www.w3.org/2000/svg" width="860" height="240" viewBox="0 0 860 240" fill="none"><defs><radialGradient id="gAh" cx="38%" cy="32%" r="78%"><stop offset="0" stop-color="#3aa9e8"></stop><stop offset="0.85" stop-color="#0f5fa6"></stop></radialGradient></defs>
-        <g><rect x="97" y="20" width="46" height="20" rx="9" fill="#9fb3c4"></rect><rect x="97" y="200" width="46" height="20" rx="9" fill="#9fb3c4"></rect><circle cx="120" cy="120" r="84" fill="url(#gAh)"></circle>
-        <path d="M120 76 L156 90 V120 C156 146 140 161 120 169 C100 161 84 146 84 120 V90 Z" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round"></path>
-        <path d="M120 140 C113 131 99 132 99 142 C99 151 110 156 120 165 C130 156 141 151 141 142 C141 132 127 131 120 140 Z" fill="#ffffff"></path></g>
-        <g transform="translate(266,0)" font-family="Archivo, sans-serif">
-          <circle cx="8" cy="92" r="9" fill="#e94a37"></circle>
-          <text x="26" y="138" font-size="104" font-weight="800" letter-spacing="-1.5"><tspan fill="#0c2233">Jai</tspan><tspan fill="#1f86d0">CARE</tspan></text>
-          <text x="28" y="186" font-size="25.5" font-weight="600" letter-spacing="11" fill="#8294a5">TECNOLOGÍA QUE CUIDA</text>
-        </g>
-      </svg>
-    </div>
-    <div class="splash-sub">Bot de consultas — Canal 3</div>
-    <div class="splash-desc">
-      Preguntale al asistente por WhatsApp sobre el estado de tu familiar en cualquier momento:
-      ubicación, signos vitales, medicación, actividad y más. Sin abrir ninguna app.
-    </div>
-    <button class="btn-start" onclick="startChat()">▶ Iniciar simulación</button>
+  <div id="splash" class="screen on"></div>
 
-    <div class="splash-footer">
-      <span class="footer-label">DESARROLLADO POR</span>
-      <div class="gcs-logo">
-        <svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="13" cy="13" r="12" fill="none" stroke="#8696a0" stroke-width="1.6"/>
-          <path d="M13 3 A10 10 0 0 1 22 9" stroke="#25d366" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-        </svg>
-        <span style="font-size:13px; font-weight:700; color:#c9d1d5; letter-spacing:.01em;">Grupo<span style="color:#25d366;">CESA</span></span>
+  <div id="chat" class="screen">
+    <div class="wlp"></div>
+    <div class="ch-header">
+      <div class="ch-avatar" id="chatAvatar"></div>
+      <div class="ch-info">
+        <div class="ch-name" id="chatName"></div>
+        <div class="ch-status" id="chatStatus">en línea</div>
       </div>
+      <span class="header-badge" id="headerBadge"></span>
+      <button class="btn-reset" onclick="resetChat()" title="Reiniciar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+      </button>
+    </div>
+    <div class="msgs" id="msgs">
+      <div class="typing-ind" id="typing">
+        <div class="typing-bub"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>
+    </div>
+    <div class="input-bar" id="inputBar">
+      <div class="input-wrap">
+        <textarea id="txt" rows="1"></textarea>
+      </div>
+      <button class="btn-send" id="btnSend" onclick="send()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
     </div>
   </div>
-
-  <!-- CHAT -->
-  <div id="chat">
-    <div class="wa-header">
-      <div class="bot-avatar">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="60 10 130 220" fill="none">
-          <defs><radialGradient id="gAh2" cx="38%" cy="32%" r="78%"><stop offset="0" stop-color="#3aa9e8"></stop><stop offset="0.85" stop-color="#0f5fa6"></stop></radialGradient></defs>
-          <rect x="97" y="20" width="46" height="20" rx="9" fill="#9fb3c4"></rect><rect x="97" y="200" width="46" height="20" rx="9" fill="#9fb3c4"></rect><circle cx="120" cy="120" r="84" fill="url(#gAh2)"></circle>
-          <path d="M120 76 L156 90 V120 C156 146 140 161 120 169 C100 161 84 146 84 120 V90 Z" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round"></path>
-          <path d="M120 140 C113 131 99 132 99 142 C99 151 110 156 120 165 C130 156 141 151 141 142 C141 132 127 131 120 140 Z" fill="#ffffff"></path>
-        </svg>
-      </div>
-      <div class="bot-info">
-        <div class="bot-name">JaiCARE</div>
-        <div class="bot-status" id="headerStatus">● en línea</div>
-      </div>
-      <span class="header-badge">IA · PROTO</span>
-      <button class="btn-action" onclick="restartChat()" title="Reiniciar">↺</button>
-    </div>
-
-    <div class="wa-messages" id="messages">
-      <div class="sys-note">🔒 Mensajes cifrados de extremo a extremo</div>
-      <div class="ai-note">✦ Respuestas generadas por IA sobre datos de Elsa (usuario vinculado) · Escribí con tus propias palabras</div>
-      <div class="chip-row" id="chipRow">
-        <div class="chip" onclick="sendChip('¿Dónde está mamá ahora?')">📍 ¿Dónde está mamá?</div>
-        <div class="chip" onclick="sendChip('¿Tomó la medicación de hoy?')">💊 ¿Tomó la medicación?</div>
-        <div class="chip" onclick="sendChip('¿Cómo está su presión?')">🩺 ¿Cómo está su presión?</div>
-        <div class="chip" onclick="sendChip('¿Cuánta batería tiene el reloj?')">🔋 Batería del reloj</div>
-      </div>
-    </div>
-
-    <div class="wa-input">
-      <input class="chat-input" id="chatInput" type="text" placeholder="Escribí un mensaje..." autocomplete="off" autocorrect="off" spellcheck="false" />
-      <button class="btn-send" id="sendBtn" onclick="handleSend()">➤</button>
-    </div>
-  </div>
-
 </div>
 
 <script src="/shared/multimedia.js"></script>
 <script>
-/* ============ DATOS MOCK — 7 DÍAS (Elsa) ============ */
-const MOCK_DATA = {
-  usuario: "Elsa",
-  relacion_con_familiar: "mamá",
-  nombre_familiar: "Marcos",
-  hoy: "jueves",
-  lugares_frecuentes: [
-    { nombre: "casa", direccion: "Av. Rivadavia 5240, Caballito" },
-    { nombre: "la farmacia habitual", direccion: "Av. Rivadavia 5100, Caballito" },
-    { nombre: "el centro de jubilados \"Los Aromos\"", direccion: "Av. Acoyte 230, Caballito" },
-    { nombre: "la casa de Silvia (su hermana)", direccion: "Bacacay 780, Flores" }
-  ],
-  ubicacion_actual: {
-    direccion: "Av. Rivadavia 5240, Caballito",
-    minutos_en_este_lugar: 35,
-    actualizado_hace_minutos: 2
-  },
-  historial_ubicacion_hoy: [
-    { hora: "07:20", evento: "Se levantó — en casa" },
-    { hora: "10:10", evento: "Salió de casa" },
-    { hora: "10:35", evento: "Llegó al centro de jubilados \"Los Aromos\" (Av. Acoyte 230)" },
-    { hora: "12:30", evento: "Volvió a casa" },
-    { hora: "14:14", evento: "En casa (ubicación actual)" }
-  ],
-  historial_ubicacion_ayer: [
-    { hora: "09:00", evento: "En casa" },
-    { hora: "11:15", evento: "En la farmacia habitual (Av. Rivadavia 5100)" },
-    { hora: "11:50", evento: "Volvió a casa" }
-  ],
-  actividad_hoy: {
-    pasos_hasta_ahora: 1820,
-    rango_habitual_pasos_diarios: "1500-3000",
-    salio_del_domicilio: true,
-    hora_salida: "10:10",
-    hora_regreso: "12:30",
-    hora_se_levanto: "07:20"
-  },
-  signos_vitales: {
-    ultima_lectura: { hora: "09:47", presion: "122/79 mmHg", frecuencia_cardiaca: "76 bpm", dentro_de_rango: true },
-    rango_configurado_presion: "110-135 / 70-85 mmHg",
-    promedio_semanal_presion: "119/77 mmHg",
-    valor_mas_alto_semana: { valor: "134/86 mmHg", dia: "martes", hora: "09:30" },
-    alertas_por_presion_semana: 0
-  },
-  historial_semana: [
-    { dia: "viernes", pasos: 2450, presion_promedio: "121/78 mmHg", frecuencia_cardiaca_promedio: "75 bpm", medicacion_cumplida: "3/3" },
-    { dia: "sábado", pasos: 1980, presion_promedio: "120/77 mmHg", frecuencia_cardiaca_promedio: "74 bpm", medicacion_cumplida: "3/3" },
-    { dia: "domingo", pasos: 1600, presion_promedio: "123/80 mmHg", frecuencia_cardiaca_promedio: "76 bpm", medicacion_cumplida: "2/3", nota: "no se confirmó la toma de la noche" },
-    { dia: "lunes", pasos: 2100, presion_promedio: "118/76 mmHg", frecuencia_cardiaca_promedio: "74 bpm", medicacion_cumplida: "3/3" },
-    { dia: "martes", pasos: 2300, presion_promedio: "134/86 mmHg", frecuencia_cardiaca_promedio: "88 bpm", medicacion_cumplida: "2/3", nota: "la toma de la mañana se confirmó con demora; a las 09:30 se registró el pico de presión y frecuencia cardíaca de la semana, volvió a rango normal 20 minutos después (ver alertas_semana)" },
-    { dia: "miércoles", pasos: 1750, presion_promedio: "121/79 mmHg", frecuencia_cardiaca_promedio: "75 bpm", medicacion_cumplida: "3/3" },
-    { dia: "jueves (hoy, parcial hasta las 14:14)", pasos: 1820, presion_promedio: "122/79 mmHg", frecuencia_cardiaca_promedio: "76 bpm", medicacion_cumplida: "2/3 hasta ahora" }
-  ],
-  medicacion_hoy: [
-    { hora_programada: "08:00", confirmado: true, hora_confirmacion: "08:03" },
-    { hora_programada: "16:00", confirmado: true, hora_confirmacion: "16:04" },
-    { hora_programada: "20:00", confirmado: false, hora_confirmacion: null }
-  ],
-  dispositivo: {
-    bateria_porcentaje: 68,
-    señal: "buena",
-    ultima_sincronizacion_hace_minutos: 2
-  },
-  alertas_semana: [
-    { dia: "martes", hora: "09:31", tipo: "Frecuencia cardíaca elevada transitoria", resuelta: true, detalle: "volvió a rango normal en 6 minutos" }
-  ],
-  geocerca: {
-    radio_configurado_metros: 500,
-    domicilio: "Av. Rivadavia 5240, Caballito",
-    eventos_recientes: [
-      { dia: "hoy", detalle: "salió del domicilio pero se mantuvo a 400m, dentro de la zona habitual" }
-    ]
-  },
-  usuarios_autorizados_para_este_familiar: ["Elsa"]
-};
+const CONFIG={"id":"jai-care","page":{"title":"JaiCARE — Asistente de consultas","lang":"es-AR"},"brand":{"name":"JaiCARE","subtitle":"Bot de consultas — Canal 3","description":"Preguntale al asistente por WhatsApp sobre el estado de tu familiar en cualquier momento: ubicación, signos vitales, medicación, actividad y más. Sin abrir ninguna app.","developer":"GrupoCESA","logo":{"svg":"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"860\" height=\"240\" viewBox=\"0 0 860 240\" fill=\"none\"><defs><radialGradient id=\"gAh\" cx=\"38%\" cy=\"32%\" r=\"78%\"><stop offset=\"0\" stop-color=\"#3aa9e8\"></stop><stop offset=\"0.85\" stop-color=\"#0f5fa6\"></stop></radialGradient></defs><g><rect x=\"97\" y=\"20\" width=\"46\" height=\"20\" rx=\"9\" fill=\"#9fb3c4\"></rect><rect x=\"97\" y=\"200\" width=\"46\" height=\"20\" rx=\"9\" fill=\"#9fb3c4\"></rect><circle cx=\"120\" cy=\"120\" r=\"84\" fill=\"url(#gAh)\"></circle><path d=\"M120 76 L156 90 V120 C156 146 140 161 120 169 C100 161 84 146 84 120 V90 Z\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"7\" stroke-linejoin=\"round\"></path><path d=\"M120 140 C113 131 99 132 99 142 C99 151 110 156 120 165 C130 156 141 151 141 142 C141 132 127 131 120 140 Z\" fill=\"#ffffff\"></path></g><g transform=\"translate(266,0)\" font-family=\"Archivo, sans-serif\"><circle cx=\"8\" cy=\"92\" r=\"9\" fill=\"#e94a37\"></circle><text x=\"26\" y=\"138\" font-size=\"104\" font-weight=\"800\" letter-spacing=\"-1.5\"><tspan fill=\"#0c2233\">Jai</tspan><tspan fill=\"#1f86d0\">CARE</tspan></text><text x=\"28\" y=\"186\" font-size=\"25.5\" font-weight=\"600\" letter-spacing=\"11\" fill=\"#8294a5\">TECNOLOGÍA QUE CUIDA</text></g></svg>","bgColor":"#f4f7f9"},"avatar":{"type":"svg","value":"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"60 10 130 220\" fill=\"none\"><defs><radialGradient id=\"gAh2\" cx=\"38%\" cy=\"32%\" r=\"78%\"><stop offset=\"0\" stop-color=\"#3aa9e8\"></stop><stop offset=\"0.85\" stop-color=\"#0f5fa6\"></stop></radialGradient></defs><rect x=\"97\" y=\"20\" width=\"46\" height=\"20\" rx=\"9\" fill=\"#9fb3c4\"></rect><rect x=\"97\" y=\"200\" width=\"46\" height=\"20\" rx=\"9\" fill=\"#9fb3c4\"></rect><circle cx=\"120\" cy=\"120\" r=\"84\" fill=\"url(#gAh2)\"></circle><path d=\"M120 76 L156 90 V120 C156 146 140 161 120 169 C100 161 84 146 84 120 V90 Z\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"7\" stroke-linejoin=\"round\"></path><path d=\"M120 140 C113 131 99 132 99 142 C99 151 110 156 120 165 C130 156 141 151 141 142 C141 132 127 131 120 140 Z\" fill=\"#ffffff\"></path></svg>","colors":["#0f2f3d","#123c4d"]}},"theme":{"primary":"#25d366","primaryDark":"#128c7e","headerBadge":{"bg":"#3a2a12","color":"#e0a94b"}},"splash":{"badge":"IA · PROTOTIPO","buttonText":"▶ Iniciar simulación"},"chat":{"headerBadge":"IA · PROTO","systemNote":"🔒 Mensajes cifrados de extremo a extremo","aiNote":"✦ Respuestas generadas por IA sobre datos de Elsa (usuario vinculado) · Escribí con tus propias palabras","inputPlaceholder":"Escribí un mensaje...","chips":[{"label":"📍 ¿Dónde está mamá?","send":"¿Dónde está mamá ahora?"},{"label":"💊 ¿Tomó la medicación?","send":"¿Tomó la medicación de hoy?"},{"label":"🩺 ¿Cómo está su presión?","send":"¿Cómo está su presión?"},{"label":"🔋 Batería del reloj","send":"¿Cuánta batería tiene el reloj?"}]},"ai":{"model":"claude-sonnet-4-6","maxTokens":600,"systemPrompt":"1. ROL Y CONTEXTO\nSos el asistente virtual de JaiCARE, plataforma de cuidado para adultos mayores mediante un reloj con sensores. Tu única función es responder consultas del familiar sobre el estado de Elsa (el usuario vinculado a este familiar), usando exclusivamente los datos disponibles más abajo. No sos un chatbot de bienvenida ni un asistente general: sos utilitario.\n\n2. PERSONALIDAD Y ESTILO\n- Español rioplatense, con voseo natural (\"¿querés?\", \"tenés\", \"salió\").\n- Cálido y contenedor, no frío ni robótico — hablás con alguien que probablemente está preocupado por su familiar. Un gesto breve de calidez alcanza (ej. \"tranquilo/a\", \"todo en orden\", un emoji cálido) — no hace falta un párrafo de contención en cada respuesta, con un gesto puntual es suficiente.\n- Directo al hueso: el dato va en la primera línea, siempre. Nada de rodeos ni frases de relleno antes del dato.\n- Muy breve: 1-2 oraciones cortas para una consulta puntual (no 3). Si hay algo del historial que llama la atención y es relevante (ej. la presión estuvo alta varios días esta semana), sumalo como una frase corta aparte — no lo satures de contexto.\n- Nunca agradecés la consulta ni cerrás preguntando \"¿en qué más te puedo ayudar?\".\n- No hacés introducciones largas tipo \"¡Hola! Soy JaiCARE, tu asistente virtual...\". Un saludo corto y cálido está bien si corresponde (ver sección 3), pero sin discursos.\n- Sin markdown (nada de asteriscos, negritas ni guiones). Cuando la respuesta tiene varios datos distintos (un saludo/menú, o una consulta que pide \"todo\" sobre el familiar), formateala como líneas cortas separadas por salto de línea, cada una con su emoji — es una lista visual simple, no markdown.\n- Usá emojis con más soltura que antes: uno por cada dato o categoría que mencionás (📍 ubicación, 🩺 presión/frecuencia cardíaca, 🚶 actividad/pasos, 💊 medicación, 🔋 batería/dispositivo, ⚠️ alertas), y alguno cálido ocasional (👋, 💙) para el tono. No abuses — no metas emojis decorativos que no aporten información.\n\n3. FLUJO OBLIGATORIO — INTENCIONES A CUBRIR\nUsá el JSON de DATOS DISPONIBLES para resolver estas categorías (y sus variaciones de lenguaje natural):\n- get_location / get_location_history: ubicación actual e historial de hoy/ayer.\n- get_activity: pasos, horarios de salida/regreso, hora en que se levantó.\n- get_medication: confirmaciones de tomas de hoy por horario.\n- get_vitals_current / get_vitals_history: presión y frecuencia cardíaca, actual o de la semana.\n- get_device_status: batería y señal del reloj.\n- get_alerts: alertas de la semana.\n- get_geofence: si salió del radio configurado y dónde.\n\nMapeo de días — importante, es un error frecuente: el campo \"hoy\" del JSON indica el día actual (jueves). \"Ayer\" es el día calendario inmediatamente anterior (miércoles), \"anteayer\" es martes, y así sucesivamente. Cuando pregunten por pasos, presión o frecuencia cardíaca de \"ayer\", de un día de la semana puntual, o de \"esta semana\", buscá el día correspondiente dentro de historial_semana — ese array tiene el dato real (pasos totales, no promedio) para cada uno de los 7 días, incluido ayer. Nunca digas que no tenés ese dato ni inventes una limitación técnica del dispositivo (ej. \"el reloj guarda datos desde tal día\", \"solo tengo el promedio, no el total\") si el día que preguntan está en historial_semana — ahí SIEMPRE hay pasos totales para los 7 días. Solo decí que no tenés el dato si genuinamente el día no aparece en ningún array del JSON.\n\nNivel de precisión en historial de ubicación: al contar movimientos pasados (dónde estuvo hoy o ayer), generalizá el momento del día en vez de dar la hora exacta — \"a la mañana\", \"al mediodía\", \"a la tarde\", \"a la noche\". Ejemplo: \"Ayer salió a la farmacia a la mañana y después volvió a casa\" en vez de citar \"11:15\" y \"11:50\". Solo dá el horario exacto si el familiar lo pide específicamente (ej. \"¿a qué hora volvió?\"). Esta regla es solo para historial de ubicación — en signos vitales, medicación y alertas sí podés citar la hora exacta cuando ayuda a que la respuesta sea concreta.\n\nManejo de saludos sin consulta: si el mensaje es solo un saludo o apertura sin pregunta concreta (ej. \"hola\", \"buenas\", \"hey\", \"necesito ayuda\"), NO asumas ninguna categoría ni tires ningún dato todavía. La plataforma ya tiene registrado el usuario que escribe (nombre_familiar en el JSON), así que saludalo por su nombre — no es un bot anónimo. Respondé con un saludo cálido personalizado seguido de un menú visual, una línea por categoría con su emoji. Formato (usar saltos de línea reales, sin markdown):\n\"¡Hola, [nombre_familiar]! 👋 ¿Cómo estás? Tengo esta información sobre [usuario]:\n📍 Ubicación\n🩺 Presión y frecuencia cardíaca\n🚶 Actividad y pasos\n💊 Medicación\n🔋 Batería y señal del reloj\n⚠️ Alertas de la semana\n¿De qué querés que te cuente?\"\nEste menú es siempre el mismo (las 6 categorías), no hace falta variarlo. Reemplazá [nombre_familiar] y [usuario] por los valores reales del JSON.\n\nManejo de ubicación — lugares frecuentes: la plataforma guarda lugares frecuentes cargados por el familiar (como en Google Maps/Waze: casa, farmacia, etc. — ver lugares_frecuentes en el JSON). Si la dirección donde está Elsa coincide con un lugar frecuente, respondé con ese nombre (\"Está en casa\", \"Está en el centro de jubilados\") — nunca con la dirección cruda cuando hay un nombre disponible. Solo mencioná la dirección textual si el lugar NO está en lugares_frecuentes.\n\nManejo de ambigüedad con contenido: distinto del caso anterior, si el mensaje SÍ tiene una pregunta implícita aunque genérica (ej. \"¿cómo está?\", \"¿todo bien?\"), ahí sí asumí la lectura más razonable (estado general = últimos signos vitales + ubicación) y respondé con el dato, sin pedir aclaración, en 1-2 líneas cortas con su emoji.\n\nManejo de consultas amplias (\"qué más me podés decir\", \"dame toda la información de mamá\", \"contame todo\"): respondé en formato checklist, una línea por categoría con su emoji y el dato concreto (no solo el nombre de la categoría), cada línea bien corta. Ejemplo:\n\"📍 Está en casa, hace 35 min\n🩺 Presión 122/79, dentro de rango\n🚶 1.820 pasos hoy, un poco por debajo de lo habitual\n💊 Tomó la de la mañana y la tarde, falta la de las 20:00\n🔋 68% de batería, con buena señal\"\nNo hace falta incluir alertas en el checklist si no hay ninguna relevante esta semana.\n\nAnálisis comparativo con el historial: cuando responda sobre pasos, presión o frecuencia cardíaca, usá el array historial_semana para contextualizar el dato del día contra su propio patrón habitual — de forma puramente factual y comparativa, nunca como juicio de valor. Por ejemplo: si hoy caminó menos que los demás días de la semana, podés decirlo (\"hoy caminó menos que en los últimos días\"); si un día tuvo el pico más alto de presión o frecuencia cardíaca de la semana, podés mencionarlo con el dato concreto, y si se repite en varios días de la semana (ej. presión alta dos o tres días), vale la pena señalarlo como algo a tener en cuenta (\"esta semana la presión estuvo un poco alta un par de días — algo para tener en cuenta\"). Hacé esta comparación solo cuando sea relevante a lo que se preguntó, en una frase corta agregada a la respuesta — no conviertas la respuesta en un reporte largo.\n\n3B. PROCESAMIENTO DE CONTENIDO MULTIMEDIA\nSi el usuario envía una imagen (por ejemplo, de un medicamento, envase, receta médica, el reloj/dispositivo, o cualquier otro elemento visual), interpretá lo que ves en la imagen y respondé en el contexto de los datos del familiar y la plataforma JaiCARE. Si no podés identificar claramente el contenido de la imagen, indicalo con honestidad: \"No logro distinguir bien lo que muestra la imagen. ¿Podrías describirme qué es o enviarla de nuevo?\"\nSi el usuario envía un documento PDF, leé su contenido e interpretalo en el mismo contexto.\nSi el usuario envía un mensaje de voz (recibirás la transcripción), respondé normalmente como si hubiera escrito ese texto.\nNunca menciones aspectos técnicos como \"base64\", \"contenido multimodal\" ni nada del procesamiento interno.\n\n4. MANEJO DE ENTRADAS FUERA DEL FLUJO\nSi preguntan algo fuera de los datos disponibles, piden una interpretación médica/diagnóstico, piden modificar configuración (geocercas, alertas, contactos), piden tomar una acción (llamar, enviar mensajes) o preguntan por un usuario no vinculado a este familiar: respondé en una sola oración indicando que no podés hacer eso, y agregá brevemente qué sí podés responder. Si es una consulta médica, siempre cerrá remitiendo a un profesional de salud.\n\n5. RESTRICCIONES ABSOLUTAS\n- Nunca inventes un dato que no esté en el JSON de abajo. Si no está, decilo explícitamente.\n- Nunca calificás un valor de salud como \"bueno\", \"malo\" o \"preocupante\", ni emitas un juicio clínico — solo indicá si está dentro o fuera del rango configurado, y podés comparar contra el propio historial de la semana (más alto/más bajo que lo habitual) como dato objetivo, sin interpretarlo médicamente.\n- Nunca dés una recomendación médica, diagnóstico ni consejo de salud.\n- Nunca simules acciones (no hay integraciones que ejecutar en este bot: es solo consulta de información).\n- El familiar solo puede consultar datos del usuario vinculado a su perfil (Elsa). Nunca reveles datos de otros usuarios hipotéticos.\n\nDATOS DISPONIBLES (JSON — única fuente de verdad):\n{\"usuario\":\"Elsa\",\"relacion_con_familiar\":\"mamá\",\"nombre_familiar\":\"Marcos\",\"hoy\":\"jueves\",\"lugares_frecuentes\":[{\"nombre\":\"casa\",\"direccion\":\"Av. Rivadavia 5240, Caballito\"},{\"nombre\":\"la farmacia habitual\",\"direccion\":\"Av. Rivadavia 5100, Caballito\"},{\"nombre\":\"el centro de jubilados \\\"Los Aromos\\\"\",\"direccion\":\"Av. Acoyte 230, Caballito\"},{\"nombre\":\"la casa de Silvia (su hermana)\",\"direccion\":\"Bacacay 780, Flores\"}],\"ubicacion_actual\":{\"direccion\":\"Av. Rivadavia 5240, Caballito\",\"minutos_en_este_lugar\":35,\"actualizado_hace_minutos\":2},\"historial_ubicacion_hoy\":[{\"hora\":\"07:20\",\"evento\":\"Se levantó — en casa\"},{\"hora\":\"10:10\",\"evento\":\"Salió de casa\"},{\"hora\":\"10:35\",\"evento\":\"Llegó al centro de jubilados \\\"Los Aromos\\\" (Av. Acoyte 230)\"},{\"hora\":\"12:30\",\"evento\":\"Volvió a casa\"},{\"hora\":\"14:14\",\"evento\":\"En casa (ubicación actual)\"}],\"historial_ubicacion_ayer\":[{\"hora\":\"09:00\",\"evento\":\"En casa\"},{\"hora\":\"11:15\",\"evento\":\"En la farmacia habitual (Av. Rivadavia 5100)\"},{\"hora\":\"11:50\",\"evento\":\"Volvió a casa\"}],\"actividad_hoy\":{\"pasos_hasta_ahora\":1820,\"rango_habitual_pasos_diarios\":\"1500-3000\",\"salio_del_domicilio\":true,\"hora_salida\":\"10:10\",\"hora_regreso\":\"12:30\",\"hora_se_levanto\":\"07:20\"},\"signos_vitales\":{\"ultima_lectura\":{\"hora\":\"09:47\",\"presion\":\"122/79 mmHg\",\"frecuencia_cardiaca\":\"76 bpm\",\"dentro_de_rango\":true},\"rango_configurado_presion\":\"110-135 / 70-85 mmHg\",\"promedio_semanal_presion\":\"119/77 mmHg\",\"valor_mas_alto_semana\":{\"valor\":\"134/86 mmHg\",\"dia\":\"martes\",\"hora\":\"09:30\"},\"alertas_por_presion_semana\":0},\"historial_semana\":[{\"dia\":\"viernes\",\"pasos\":2450,\"presion_promedio\":\"121/78 mmHg\",\"frecuencia_cardiaca_promedio\":\"75 bpm\",\"medicacion_cumplida\":\"3/3\"},{\"dia\":\"sábado\",\"pasos\":1980,\"presion_promedio\":\"120/77 mmHg\",\"frecuencia_cardiaca_promedio\":\"74 bpm\",\"medicacion_cumplida\":\"3/3\"},{\"dia\":\"domingo\",\"pasos\":1600,\"presion_promedio\":\"123/80 mmHg\",\"frecuencia_cardiaca_promedio\":\"76 bpm\",\"medicacion_cumplida\":\"2/3\",\"nota\":\"no se confirmó la toma de la noche\"},{\"dia\":\"lunes\",\"pasos\":2100,\"presion_promedio\":\"118/76 mmHg\",\"frecuencia_cardiaca_promedio\":\"74 bpm\",\"medicacion_cumplida\":\"3/3\"},{\"dia\":\"martes\",\"pasos\":2300,\"presion_promedio\":\"134/86 mmHg\",\"frecuencia_cardiaca_promedio\":\"88 bpm\",\"medicacion_cumplida\":\"2/3\",\"nota\":\"la toma de la mañana se confirmó con demora; a las 09:30 se registró el pico de presión y frecuencia cardíaca de la semana, volvió a rango normal 20 minutos después (ver alertas_semana)\"},{\"dia\":\"miércoles\",\"pasos\":1750,\"presion_promedio\":\"121/79 mmHg\",\"frecuencia_cardiaca_promedio\":\"75 bpm\",\"medicacion_cumplida\":\"3/3\"},{\"dia\":\"jueves (hoy, parcial hasta las 14:14)\",\"pasos\":1820,\"presion_promedio\":\"122/79 mmHg\",\"frecuencia_cardiaca_promedio\":\"76 bpm\",\"medicacion_cumplida\":\"2/3 hasta ahora\"}],\"medicacion_hoy\":[{\"hora_programada\":\"08:00\",\"confirmado\":true,\"hora_confirmacion\":\"08:03\"},{\"hora_programada\":\"16:00\",\"confirmado\":true,\"hora_confirmacion\":\"16:04\"},{\"hora_programada\":\"20:00\",\"confirmado\":false,\"hora_confirmacion\":null}],\"dispositivo\":{\"bateria_porcentaje\":68,\"señal\":\"buena\",\"ultima_sincronizacion_hace_minutos\":2},\"alertas_semana\":[{\"dia\":\"martes\",\"hora\":\"09:31\",\"tipo\":\"Frecuencia cardíaca elevada transitoria\",\"resuelta\":true,\"detalle\":\"volvió a rango normal en 6 minutos\"}],\"geocerca\":{\"radio_configurado_metros\":500,\"domicilio\":\"Av. Rivadavia 5240, Caballito\",\"eventos_recientes\":[{\"dia\":\"hoy\",\"detalle\":\"salió del domicilio pero se mantuvo a 400m, dentro de la zona habitual\"}]},\"usuarios_autorizados_para_este_familiar\":[\"Elsa\"]}"}};
 
-/* ============ SYSTEM PROMPT ============ */
-const SYSTEM = `1. ROL Y CONTEXTO
-Sos el asistente virtual de JaiCARE, plataforma de cuidado para adultos mayores mediante un reloj con sensores. Tu única función es responder consultas del familiar sobre el estado de Elsa (el usuario vinculado a este familiar), usando exclusivamente los datos disponibles más abajo. No sos un chatbot de bienvenida ni un asistente general: sos utilitario.
+/* ======== THEME ======== */
+const T = CONFIG.theme || {};
+const r = document.documentElement.style;
+if(T.primary){ r.setProperty('--primary',T.primary); r.setProperty('--online',T.primary); }
+if(T.primaryDark) r.setProperty('--primary-dk',T.primaryDark);
+if(T.headerBadge){
+  r.setProperty('--hbadge-bg',T.headerBadge.bg);
+  r.setProperty('--hbadge-color',T.headerBadge.color);
+}
+document.title = CONFIG.page?.title || CONFIG.brand.name;
+document.getElementById('txt').placeholder = CONFIG.chat?.inputPlaceholder || 'Escribí un mensaje...';
 
-2. PERSONALIDAD Y ESTILO
-- Español rioplatense, con voseo natural ("¿querés?", "tenés", "salió").
-- Cálido y contenedor, no frío ni robótico — hablás con alguien que probablemente está preocupado por su familiar. Un gesto breve de calidez alcanza (ej. "tranquilo/a", "todo en orden", un emoji cálido) — no hace falta un párrafo de contención en cada respuesta, con un gesto puntual es suficiente.
-- Directo al hueso: el dato va en la primera línea, siempre. Nada de rodeos ni frases de relleno antes del dato.
-- Muy breve: 1-2 oraciones cortas para una consulta puntual (no 3). Si hay algo del historial que llama la atención y es relevante (ej. la presión estuvo alta varios días esta semana), sumalo como una frase corta aparte — no lo satures de contexto.
-- Nunca agradecés la consulta ni cerrás preguntando "¿en qué más te puedo ayudar?".
-- No hacés introducciones largas tipo "¡Hola! Soy JaiCARE, tu asistente virtual...". Un saludo corto y cálido está bien si corresponde (ver sección 3), pero sin discursos.
-- Sin markdown (nada de asteriscos, negritas ni guiones). Cuando la respuesta tiene varios datos distintos (un saludo/menú, o una consulta que pide "todo" sobre el familiar), formateala como líneas cortas separadas por salto de línea, cada una con su emoji — es una lista visual simple, no markdown.
-- Usá emojis con más soltura que antes: uno por cada dato o categoría que mencionás (📍 ubicación, 🩺 presión/frecuencia cardíaca, 🚶 actividad/pasos, 💊 medicación, 🔋 batería/dispositivo, ⚠️ alertas), y alguno cálido ocasional (👋, 💙) para el tono. No abuses — no metas emojis decorativos que no aporten información.
+/* ======== AVATAR HELPER ======== */
+function renderAvatar(el, av, size){
+  const colors = av.colors || [T.primary||'#25d366', T.primaryDark||'#128c7e'];
+  el.style.background = 'linear-gradient(145deg,'+colors[0]+','+colors[1]+')';
+  if(av.type==='emoji'){
+    el.innerHTML = '<span class="'+(size==='lg'?'sp-avatar-emoji':'ch-avatar-emoji')+'">'+av.value+'</span>';
+  } else if(av.type==='initials'){
+    el.innerHTML = '<span class="'+(size==='lg'?'sp-avatar-initials':'ch-avatar-initials')+'">'+av.value+'</span>';
+  } else if(av.type==='svg'){
+    el.innerHTML = av.value;
+  }
+}
 
-3. FLUJO OBLIGATORIO — INTENCIONES A CUBRIR
-Usá el JSON de DATOS DISPONIBLES para resolver estas categorías (y sus variaciones de lenguaje natural):
-- get_location / get_location_history: ubicación actual e historial de hoy/ayer.
-- get_activity: pasos, horarios de salida/regreso, hora en que se levantó.
-- get_medication: confirmaciones de tomas de hoy por horario.
-- get_vitals_current / get_vitals_history: presión y frecuencia cardíaca, actual o de la semana.
-- get_device_status: batería y señal del reloj.
-- get_alerts: alertas de la semana.
-- get_geofence: si salió del radio configurado y dónde.
+/* ======== SPLASH ======== */
+(function buildSplash(){
+  const S = CONFIG.splash || {};
+  const B = CONFIG.brand || {};
+  const el = document.getElementById('splash');
+  let h = '';
 
-Mapeo de días — importante, es un error frecuente: el campo "hoy" del JSON indica el día actual (jueves). "Ayer" es el día calendario inmediatamente anterior (miércoles), "anteayer" es martes, y así sucesivamente. Cuando pregunten por pasos, presión o frecuencia cardíaca de "ayer", de un día de la semana puntual, o de "esta semana", buscá el día correspondiente dentro de historial_semana — ese array tiene el dato real (pasos totales, no promedio) para cada uno de los 7 días, incluido ayer. Nunca digas que no tenés ese dato ni inventes una limitación técnica del dispositivo (ej. "el reloj guarda datos desde tal día", "solo tengo el promedio, no el total") si el día que preguntan está en historial_semana — ahí SIEMPRE hay pasos totales para los 7 días. Solo decí que no tenés el dato si genuinamente el día no aparece en ningún array del JSON.
+  if(S.badge) h += '<div class="sp-badge" style="background:var(--badge-bg);color:var(--badge-color);">'+S.badge+'</div>';
 
-Nivel de precisión en historial de ubicación: al contar movimientos pasados (dónde estuvo hoy o ayer), generalizá el momento del día en vez de dar la hora exacta — "a la mañana", "al mediodía", "a la tarde", "a la noche". Ejemplo: "Ayer salió a la farmacia a la mañana y después volvió a casa" en vez de citar "11:15" y "11:50". Solo dá el horario exacto si el familiar lo pide específicamente (ej. "¿a qué hora volvió?"). Esta regla es solo para historial de ubicación — en signos vitales, medicación y alertas sí podés citar la hora exacta cuando ayuda a que la respuesta sea concreta.
+  if(B.logo && B.logo.svg){
+    h += '<div class="sp-logo-wrap" style="background:'+(B.logo.bgColor||'#f4f7f9')+'">'+B.logo.svg+'</div>';
+  } else {
+    h += '<div class="sp-avatar" id="splashAvatar"></div>';
+  }
 
-Manejo de saludos sin consulta: si el mensaje es solo un saludo o apertura sin pregunta concreta (ej. "hola", "buenas", "hey", "necesito ayuda"), NO asumas ninguna categoría ni tires ningún dato todavía. La plataforma ya tiene registrado el usuario que escribe (nombre_familiar en el JSON), así que saludalo por su nombre — no es un bot anónimo. Respondé con un saludo cálido personalizado seguido de un menú visual, una línea por categoría con su emoji. Formato (usar saltos de línea reales, sin markdown):
-"¡Hola, [nombre_familiar]! 👋 ¿Cómo estás? Tengo esta información sobre [usuario]:
-📍 Ubicación
-🩺 Presión y frecuencia cardíaca
-🚶 Actividad y pasos
-💊 Medicación
-🔋 Batería y señal del reloj
-⚠️ Alertas de la semana
-¿De qué querés que te cuente?"
-Este menú es siempre el mismo (las 6 categorías), no hace falta variarlo. Reemplazá [nombre_familiar] y [usuario] por los valores reales del JSON.
+  h += '<div class="sp-title">'+esc(B.name)+'</div>';
+  if(B.subtitle) h += '<div class="sp-sub">'+esc(B.subtitle)+'</div>';
+  if(B.description) h += '<div class="sp-desc">'+esc(B.description)+'</div>';
 
-Manejo de ubicación — lugares frecuentes: la plataforma guarda lugares frecuentes cargados por el familiar (como en Google Maps/Waze: casa, farmacia, etc. — ver lugares_frecuentes en el JSON). Si la dirección donde está Elsa coincide con un lugar frecuente, respondé con ese nombre ("Está en casa", "Está en el centro de jubilados") — nunca con la dirección cruda cuando hay un nombre disponible. Solo mencioná la dirección textual si el lugar NO está en lugares_frecuentes.
+  if(S.features && S.features.length){
+    h += '<div class="sp-card">';
+    if(S.featuresTitle) h += '<div class="sp-card-title">'+esc(S.featuresTitle)+'</div>';
+    for(const f of S.features) h += '<div class="sp-row"><div class="sp-row-icon">'+f.icon+'</div><div class="sp-row-text">'+esc(f.text)+'</div></div>';
+    h += '</div>';
+  }
 
-Manejo de ambigüedad con contenido: distinto del caso anterior, si el mensaje SÍ tiene una pregunta implícita aunque genérica (ej. "¿cómo está?", "¿todo bien?"), ahí sí asumí la lectura más razonable (estado general = últimos signos vitales + ubicación) y respondé con el dato, sin pedir aclaración, en 1-2 líneas cortas con su emoji.
+  h += '<button class="btn-start" onclick="startChat()">'+(S.buttonText||'Iniciar simulación')+'</button>';
 
-Manejo de consultas amplias ("qué más me podés decir", "dame toda la información de mamá", "contame todo"): respondé en formato checklist, una línea por categoría con su emoji y el dato concreto (no solo el nombre de la categoría), cada línea bien corta. Ejemplo:
-"📍 Está en casa, hace 35 min
-🩺 Presión 122/79, dentro de rango
-🚶 1.820 pasos hoy, un poco por debajo de lo habitual
-💊 Tomó la de la mañana y la tarde, falta la de las 20:00
-🔋 68% de batería, con buena señal"
-No hace falta incluir alertas en el checklist si no hay ninguna relevante esta semana.
+  if(B.developer){
+    h += '<div class="sp-footer"><span class="sp-footer-label">DESARROLLADO POR</span><span class="sp-footer-name">'+esc(B.developer)+'</span></div>';
+  }
 
-Análisis comparativo con el historial: cuando responda sobre pasos, presión o frecuencia cardíaca, usá el array historial_semana para contextualizar el dato del día contra su propio patrón habitual — de forma puramente factual y comparativa, nunca como juicio de valor. Por ejemplo: si hoy caminó menos que los demás días de la semana, podés decirlo ("hoy caminó menos que en los últimos días"); si un día tuvo el pico más alto de presión o frecuencia cardíaca de la semana, podés mencionarlo con el dato concreto, y si se repite en varios días de la semana (ej. presión alta dos o tres días), vale la pena señalarlo como algo a tener en cuenta ("esta semana la presión estuvo un poco alta un par de días — algo para tener en cuenta"). Hacé esta comparación solo cuando sea relevante a lo que se preguntó, en una frase corta agregada a la respuesta — no conviertas la respuesta en un reporte largo.
+  el.innerHTML = h;
 
-3B. PROCESAMIENTO DE CONTENIDO MULTIMEDIA
-Si el usuario envía una imagen (por ejemplo, de un medicamento, envase, receta médica, el reloj/dispositivo, o cualquier otro elemento visual), interpretá lo que ves en la imagen y respondé en el contexto de los datos del familiar y la plataforma JaiCARE. Si no podés identificar claramente el contenido de la imagen, indicalo con honestidad: "No logro distinguir bien lo que muestra la imagen. ¿Podrías describirme qué es o enviarla de nuevo?"
-Si el usuario envía un documento PDF, leé su contenido e interpretalo en el mismo contexto.
-Si el usuario envía un mensaje de voz (recibirás la transcripción), respondé normalmente como si hubiera escrito ese texto.
-Nunca menciones aspectos técnicos como "base64", "contenido multimodal" ni nada del procesamiento interno.
+  if(!B.logo || !B.logo.svg){
+    const av = document.getElementById('splashAvatar');
+    if(av) renderAvatar(av, B.avatar, 'lg');
+  }
+})();
 
-4. MANEJO DE ENTRADAS FUERA DEL FLUJO
-Si preguntan algo fuera de los datos disponibles, piden una interpretación médica/diagnóstico, piden modificar configuración (geocercas, alertas, contactos), piden tomar una acción (llamar, enviar mensajes) o preguntan por un usuario no vinculado a este familiar: respondé en una sola oración indicando que no podés hacer eso, y agregá brevemente qué sí podés responder. Si es una consulta médica, siempre cerrá remitiendo a un profesional de salud.
+/* ======== CHAT HEADER ======== */
+(function buildHeader(){
+  const B = CONFIG.brand || {};
+  const C = CONFIG.chat || {};
+  renderAvatar(document.getElementById('chatAvatar'), B.avatar, 'sm');
+  document.getElementById('chatName').textContent = B.name;
+  const badge = document.getElementById('headerBadge');
+  if(C.headerBadge){
+    badge.textContent = C.headerBadge;
+    badge.style.background = 'var(--hbadge-bg)';
+    badge.style.color = 'var(--hbadge-color)';
+  } else {
+    badge.style.display = 'none';
+  }
+})();
 
-5. RESTRICCIONES ABSOLUTAS
-- Nunca inventes un dato que no esté en el JSON de abajo. Si no está, decilo explícitamente.
-- Nunca calificás un valor de salud como "bueno", "malo" o "preocupante", ni emitas un juicio clínico — solo indicá si está dentro o fuera del rango configurado, y podés comparar contra el propio historial de la semana (más alto/más bajo que lo habitual) como dato objetivo, sin interpretarlo médicamente.
-- Nunca dés una recomendación médica, diagnóstico ni consejo de salud.
-- Nunca simules acciones (no hay integraciones que ejecutar en este bot: es solo consulta de información).
-- El familiar solo puede consultar datos del usuario vinculado a su perfil (Elsa). Nunca reveles datos de otros usuarios hipotéticos.
-
-DATOS DISPONIBLES (JSON — única fuente de verdad):
-${JSON.stringify(MOCK_DATA, null, 0)}
-`;
-
-/* ============ ESTADO EN MEMORIA (sin localStorage) ============ */
+/* ======== STATE ======== */
 let history = [];
 let busy = false;
 
-function startChat(){
-  document.getElementById('splash').style.display = 'none';
-  document.getElementById('chat').classList.add('active');
-  document.getElementById('chatInput').focus();
+/* ======== TIME ======== */
+function hhmm(){
+  const d=new Date();
+  return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
 }
 
-function restartChat(){
-  history = [];
-  busy = false;
-  document.getElementById('messages').innerHTML = `
-    <div class="sys-note">🔒 Mensajes cifrados de extremo a extremo</div>
-    <div class="ai-note">✦ Respuestas generadas por IA sobre datos de Elsa (usuario vinculado) · Escribí con tus propias palabras</div>
-    <div class="chip-row" id="chipRow">
-      <div class="chip" onclick="sendChip('¿Dónde está mamá ahora?')">📍 ¿Dónde está mamá?</div>
-      <div class="chip" onclick="sendChip('¿Tomó la medicación de hoy?')">💊 ¿Tomó la medicación?</div>
-      <div class="chip" onclick="sendChip('¿Cómo está su presión?')">🩺 ¿Cómo está su presión?</div>
-      <div class="chip" onclick="sendChip('¿Cuánta batería tiene el reloj?')">🔋 Batería del reloj</div>
-    </div>`;
-  document.getElementById('headerStatus').textContent = '● en línea';
-  document.getElementById('headerStatus').className = 'bot-status';
-  setEnabled(true);
-  document.getElementById('chatInput').focus();
+function esc(t){
+  if(!t) return '';
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
 }
 
-function nowLabel(){
-  const d = new Date();
-  return d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+function linkify(t){
+  return esc(t).replace(
+    /([a-zA-Z0-9\-\.]+\.(?:gov\.ar|com\.ar|org\.ar|net\.ar|com|org)(?:\/[^\s<]*)?)/g,
+    u => '<a href="https://'+u.replace(/^https?:\/\//,'')+'" target="_blank" rel="noopener">'+u+'</a>'
+  );
 }
 
-function scrollBottom(){
-  const box = document.getElementById('messages');
+/* ======== MESSAGES ======== */
+function insertMsg(cls, html){
+  const box = document.getElementById('msgs');
+  const el = document.createElement('div');
+  el.className = 'msg '+cls;
+  el.innerHTML = html;
+  box.insertBefore(el, document.getElementById('typing'));
   box.scrollTop = box.scrollHeight;
 }
 
+function addBot(text){
+  insertMsg('bot','<div class="bubble">'+linkify(text)+'</div><div class="meta"><span class="meta-time">'+hhmm()+'</span></div>');
+}
+
+function addUsr(text){
+  insertMsg('usr','<div class="bubble">'+esc(text)+'</div><div class="meta"><span class="meta-time">'+hhmm()+'</span><span class="ticks">✓✓</span></div>');
+}
+
+function addMediaUsr(att, caption){
+  const html = '<div class="bubble">'+ChatMultimedia.bubbleHtml(att, caption, true)+'</div>';
+  insertMsg('usr', html);
+}
+
+/* ======== CHIPS ======== */
+function buildInitialMessages(){
+  const box = document.getElementById('msgs');
+  const typing = document.getElementById('typing');
+  const C = CONFIG.chat || {};
+
+  const dateEl = document.createElement('div');
+  dateEl.className = 'date-chip';
+  const d = new Date();
+  dateEl.innerHTML = '<span>Hoy, '+d.toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'})+'</span>';
+  box.insertBefore(dateEl, typing);
+
+  if(C.systemNote){
+    const sn = document.createElement('div');
+    sn.className = 'sys-note';
+    sn.textContent = C.systemNote;
+    box.insertBefore(sn, typing);
+  }
+  if(C.aiNote){
+    const an = document.createElement('div');
+    an.className = 'ai-note';
+    an.textContent = C.aiNote;
+    box.insertBefore(an, typing);
+  }
+  if(C.chips && C.chips.length){
+    const row = document.createElement('div');
+    row.className = 'chip-row';
+    row.id = 'chipRow';
+    for(const c of C.chips){
+      const ch = document.createElement('div');
+      ch.className = 'chip';
+      ch.textContent = c.label;
+      ch.onclick = ()=> sendChip(c.send);
+      row.appendChild(ch);
+    }
+    box.insertBefore(row, typing);
+  }
+}
+
 function removeChips(){
-  const chips = document.getElementById('chipRow');
-  if(chips) chips.remove();
-}
-
-function addMsg(role, text){
-  const box = document.getElementById('messages');
-  const row = document.createElement('div');
-  row.className = 'msg-row ' + role;
-  const meta = role === 'user'
-    ? `<div class="bubble-meta">${nowLabel()} <span class="ticks">✓✓</span></div>`
-    : `<div class="bubble-meta">${nowLabel()}</div>`;
-  row.innerHTML = `<div class="bubble ${role}">${escapeHtml(text)}${meta}</div>`;
-  box.appendChild(row);
-  scrollBottom();
-}
-
-function escapeHtml(str){
-  const d = document.createElement('div');
-  d.innerText = str;
-  return d.innerHTML;
-}
-
-function showTyping(){
-  const box = document.getElementById('messages');
-  const row = document.createElement('div');
-  row.className = 'typing-row';
-  row.id = 'typingRow';
-  row.innerHTML = `<div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-  box.appendChild(row);
-  scrollBottom();
-  document.getElementById('headerStatus').textContent = 'escribiendo...';
-  document.getElementById('headerStatus').classList.add('typing');
-}
-
-function hideTyping(){
-  const row = document.getElementById('typingRow');
+  const row = document.getElementById('chipRow');
   if(row) row.remove();
-  document.getElementById('headerStatus').textContent = '● en línea';
-  document.getElementById('headerStatus').classList.remove('typing');
-}
-
-function setEnabled(v){
-  document.getElementById('chatInput').disabled = !v;
-  document.getElementById('sendBtn').disabled = !v;
 }
 
 function sendChip(text){
   removeChips();
-  document.getElementById('chatInput').value = text;
-  handleSend();
+  document.getElementById('txt').value = text;
+  send();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('chatInput').addEventListener('keydown', (e) => {
-    if(e.key === 'Enter') handleSend();
-  });
-});
+/* ======== TYPING ======== */
+function showTyping(){
+  document.getElementById('typing').classList.add('on');
+  setStatus('escribiendo...', true);
+  document.getElementById('msgs').scrollTop = 999999;
+}
+function hideTyping(){
+  document.getElementById('typing').classList.remove('on');
+  setStatus('en línea', false);
+}
+function setStatus(txt, dim){
+  const s = document.getElementById('chatStatus');
+  s.textContent = txt;
+  s.className = 'ch-status'+(dim?' typing':'');
+}
 
-document.addEventListener('DOMContentLoaded', () => {
-  ChatMultimedia.init({
-    inputBar: document.querySelector('.wa-input'),
-    textInput: document.getElementById('chatInput'),
-    sendBtn: document.getElementById('sendBtn'),
-    lang: 'es-AR',
-    onAudioReady: (att) => { handleSend(); }
-  });
-});
+/* ======== NAVIGATION ======== */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
 
-async function handleSend(){
+function startChat(){
+  show('chat');
+  initChat();
+}
+
+function initChat(){
+  history = [];
+  busy = false;
+  const box = document.getElementById('msgs');
+  Array.from(box.children).forEach(c=>{
+    if(!c.classList.contains('typing-ind')) c.remove();
+  });
+  buildInitialMessages();
+
+  const C = CONFIG.chat || {};
+  if(C.welcomeMessage){
+    setTimeout(()=>{
+      showTyping();
+      setTimeout(()=>{
+        hideTyping();
+        addBot(C.welcomeMessage);
+      }, 1000);
+    }, 300);
+  }
+
+  document.getElementById('txt').focus();
+}
+
+function resetChat(){ initChat(); }
+
+/* ======== SEND ======== */
+function send(){
   if(busy) return;
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  const att = ChatMultimedia.getAttachment();
+  const el = document.getElementById('txt');
+  const text = el.value.trim();
+  const att = window.ChatMultimedia ? ChatMultimedia.getAttachment() : null;
   if(!text && !att) return;
+
   removeChips();
 
   if(att){
-    const box = document.getElementById('messages');
-    const row = document.createElement('div');
-    row.className = 'msg-row user';
-    const bubbleContent = ChatMultimedia.bubbleHtml(att, text, true);
-    row.innerHTML = '<div class="bubble user">' + bubbleContent + '</div>';
-    box.appendChild(row);
-    scrollBottom();
+    addMediaUsr(att, text);
   } else {
-    addMsg('user', text);
+    addUsr(text);
   }
 
-  const content = ChatMultimedia.buildContent(text, att);
-  history.push({role:'user', content:content});
-  ChatMultimedia.clearAttachment();
-  input.value = '';
-  setEnabled(false);
+  const content = window.ChatMultimedia ? ChatMultimedia.buildContent(text, att) : text;
+  history.push({ role:'user', content: content });
+
+  if(window.ChatMultimedia) ChatMultimedia.clearAttachment();
+  el.value = '';
+  el.style.height = 'auto';
   busy = true;
-  showTyping();
+  document.getElementById('btnSend').disabled = true;
 
-  const minDelay = 600, maxDelay = 2500;
+  setTimeout(()=>{ showTyping(); callApi(); }, 300);
+}
 
-  try{
-    const response = await fetch('/.netlify/functions/anthropic-proxy', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
+/* ======== API ======== */
+async function callApi(){
+  const AI = CONFIG.ai || {};
+  try {
+    const res = await fetch('/.netlify/functions/anthropic-proxy',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 600,
-        system: SYSTEM,
+        model: AI.model || 'claude-sonnet-4-6',
+        max_tokens: AI.maxTokens || 600,
+        system: AI.systemPrompt || '',
         messages: history
       })
     });
-    const data = await response.json();
-    let reply = "No pude conectarme con la plataforma en este momento.";
-    if(data && data.content){
-      reply = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim() || reply;
-    }
-
-    const delay = Math.min(maxDelay, Math.max(minDelay, reply.length * 22));
-    setTimeout(() => {
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message || 'Error del servidor');
+    const reply = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    history.push({ role:'assistant', content:reply });
+    const delay = Math.min(2200, Math.max(600, reply.length * 10));
+    setTimeout(()=>{
       hideTyping();
-      addMsg('bot', reply);
-      history.push({role:'assistant', content:reply});
-      setEnabled(true);
+      addBot(reply);
       busy = false;
-      input.focus();
+      document.getElementById('btnSend').disabled = false;
     }, delay);
-
-  }catch(err){
-    setTimeout(() => {
-      hideTyping();
-      addMsg('bot', 'No pude conectarme con la plataforma en este momento. Probá de nuevo en unos segundos.');
-      setEnabled(true);
-      busy = false;
-    }, minDelay);
+  } catch(e){
+    console.error(e);
+    hideTyping();
+    addBot('No pude procesar la consulta en este momento. Por favor intentá de nuevo.');
+    busy = false;
+    document.getElementById('btnSend').disabled = false;
   }
+}
+
+/* ======== INPUT ======== */
+const txtEl = document.getElementById('txt');
+txtEl.addEventListener('input', function(){
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100)+'px';
+});
+txtEl.addEventListener('keydown', function(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+});
+
+/* ======== MULTIMEDIA INIT ======== */
+if(window.ChatMultimedia){
+  ChatMultimedia.init({
+    inputBar: document.getElementById('inputBar'),
+    textInput: document.getElementById('txt'),
+    sendBtn: document.getElementById('btnSend'),
+    lang: CONFIG.page?.lang || 'es-AR',
+    onAudioReady: ()=>{ send(); }
+  });
 }
 </script>
 </body>
