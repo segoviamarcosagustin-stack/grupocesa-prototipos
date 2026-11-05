@@ -264,6 +264,7 @@
 
 </div>
 
+<script src="/shared/multimedia.js"></script>
 <script>
 /* ============ DATOS MOCK — 7 DÍAS (Elsa) ============ */
 const MOCK_DATA = {
@@ -394,6 +395,12 @@ No hace falta incluir alertas en el checklist si no hay ninguna relevante esta s
 
 Análisis comparativo con el historial: cuando responda sobre pasos, presión o frecuencia cardíaca, usá el array historial_semana para contextualizar el dato del día contra su propio patrón habitual — de forma puramente factual y comparativa, nunca como juicio de valor. Por ejemplo: si hoy caminó menos que los demás días de la semana, podés decirlo ("hoy caminó menos que en los últimos días"); si un día tuvo el pico más alto de presión o frecuencia cardíaca de la semana, podés mencionarlo con el dato concreto, y si se repite en varios días de la semana (ej. presión alta dos o tres días), vale la pena señalarlo como algo a tener en cuenta ("esta semana la presión estuvo un poco alta un par de días — algo para tener en cuenta"). Hacé esta comparación solo cuando sea relevante a lo que se preguntó, en una frase corta agregada a la respuesta — no conviertas la respuesta en un reporte largo.
 
+3B. PROCESAMIENTO DE CONTENIDO MULTIMEDIA
+Si el usuario envía una imagen (por ejemplo, de un medicamento, envase, receta médica, el reloj/dispositivo, o cualquier otro elemento visual), interpretá lo que ves en la imagen y respondé en el contexto de los datos del familiar y la plataforma JaiCARE. Si no podés identificar claramente el contenido de la imagen, indicalo con honestidad: "No logro distinguir bien lo que muestra la imagen. ¿Podrías describirme qué es o enviarla de nuevo?"
+Si el usuario envía un documento PDF, leé su contenido e interpretalo en el mismo contexto.
+Si el usuario envía un mensaje de voz (recibirás la transcripción), respondé normalmente como si hubiera escrito ese texto.
+Nunca menciones aspectos técnicos como "base64", "contenido multimodal" ni nada del procesamiento interno.
+
 4. MANEJO DE ENTRADAS FUERA DEL FLUJO
 Si preguntan algo fuera de los datos disponibles, piden una interpretación médica/diagnóstico, piden modificar configuración (geocercas, alertas, contactos), piden tomar una acción (llamar, enviar mensajes) o preguntan por un usuario no vinculado a este familiar: respondé en una sola oración indicando que no podés hacer eso, y agregá brevemente qué sí podés responder. Si es una consulta médica, siempre cerrá remitiendo a un profesional de salud.
 
@@ -505,20 +512,44 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  ChatMultimedia.init({
+    inputBar: document.querySelector('.wa-input'),
+    textInput: document.getElementById('chatInput'),
+    sendBtn: document.getElementById('sendBtn'),
+    lang: 'es-AR',
+    onAudioReady: (att) => { handleSend(); }
+  });
+});
+
 async function handleSend(){
   if(busy) return;
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
-  if(!text) return;
+  const att = ChatMultimedia.getAttachment();
+  if(!text && !att) return;
   removeChips();
-  addMsg('user', text);
-  history.push({role:'user', content:text});
+
+  if(att){
+    const box = document.getElementById('messages');
+    const row = document.createElement('div');
+    row.className = 'msg-row user';
+    const bubbleContent = ChatMultimedia.bubbleHtml(att, text, true);
+    row.innerHTML = '<div class="bubble user">' + bubbleContent + '</div>';
+    box.appendChild(row);
+    scrollBottom();
+  } else {
+    addMsg('user', text);
+  }
+
+  const content = ChatMultimedia.buildContent(text, att);
+  history.push({role:'user', content:content});
+  ChatMultimedia.clearAttachment();
   input.value = '';
   setEnabled(false);
   busy = true;
   showTyping();
 
-  // timing realista: proporcional al largo de la próxima respuesta estimada
   const minDelay = 600, maxDelay = 2500;
 
   try{

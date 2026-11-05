@@ -342,6 +342,7 @@
 
 </div><!-- /#app -->
 
+<script src="/shared/multimedia.js"></script>
 <script>
 /* ── ESTADO ── */
 let history = [];
@@ -415,6 +416,12 @@ FIRMAT: Bv.Solís 780 lun-vie 7-18h
 RAFAELA: Guemes 282 lun-vie 8-20h
 RECONQUISTA: Patricio Diez 1125 Terminal (03482) 449271 lun-vie 8-18h / Avellaneda Calle 4 entre 17 y 19 lun-vie 8-14h
 Si la ciudad no está en esta lista: indicá escribir a direccionctd@santafe.gov.ar
+
+CONTENIDO MULTIMEDIA:
+Si el usuario envía una imagen (por ejemplo, una foto de un documento, una captura de pantalla del portal de denuncias, una orden judicial, o cualquier referencia visual), interpretá lo que ves y orientá al usuario según corresponda dentro de los flujos definidos. Si no podés leer claramente el contenido de la imagen, indicalo: "No logro distinguir bien el contenido de la imagen. ¿Podría describirme qué necesita o enviarla nuevamente?"
+Si el usuario envía un documento PDF, leé su contenido e interpretalo en el contexto de los servicios del MPA.
+Si el usuario envía un mensaje de voz (recibirás la transcripción), respondé normalmente como si hubiera escrito ese texto.
+Nunca menciones aspectos técnicos del procesamiento interno.
 
 RESTRICCIONES:
 Nunca compartas datos de causas particulares ni brindes asesoramiento legal.
@@ -510,14 +517,27 @@ function setStatus(txt, dim) {
 function send() {
   const el = document.getElementById('txt');
   const text = el.value.trim();
-  if (!text || busy) return;
+  const att = window.ChatMultimedia ? ChatMultimedia.getAttachment() : null;
+  if (!text && !att) return;
+  if (busy) return;
   el.value = '';
   el.style.height = 'auto';
-  addUsr(text);
-  history.push({ role: 'user', content: text });
+
+  if (att) {
+    const msgEl = document.createElement('div');
+    msgEl.className = 'msg usr';
+    msgEl.innerHTML = '<div class="bubble">' + ChatMultimedia.bubbleHtml(att, text, true) + '</div>';
+    document.getElementById('msgs').insertBefore(msgEl, document.getElementById('typing'));
+    document.getElementById('msgs').scrollTop = 99999;
+  } else {
+    addUsr(text);
+  }
+
+  const content = window.ChatMultimedia ? ChatMultimedia.buildContent(text, att) : text;
+  history.push({ role: 'user', content: content });
+  if (window.ChatMultimedia) ChatMultimedia.clearAttachment();
   busy = true;
   document.getElementById('btn-send').disabled = true;
-
 
   setTimeout(() => { showTyping(); callApi(); }, 350);
 }
@@ -564,6 +584,16 @@ txt.addEventListener('input', function() {
 txt.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 });
+
+if (window.ChatMultimedia) {
+  ChatMultimedia.init({
+    inputBar: document.querySelector('.input-bar'),
+    textInput: document.getElementById('txt'),
+    sendBtn: document.getElementById('btn-send'),
+    lang: 'es-AR',
+    onAudioReady: () => { send(); }
+  });
+}
 </script>
 </body>
 </html>

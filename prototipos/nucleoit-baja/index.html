@@ -127,6 +127,7 @@
   </div>
 
 </div>
+<script src="/shared/multimedia.js"></script>
 <script>
 const SYSTEM = `Sos el asistente virtual de NucleoIT, empresa que provee software de gestión para negocios (restaurantes, locales comerciales, etc.).
 
@@ -163,6 +164,12 @@ OFERTA DE DESCUENTO:
 "Para que puedas seguir aprovechando el sistema, queremos ofrecerte un 30% de descuento durante 4 meses. ¿Te parece bien?"
 → Si acepta: "¡Excelente! 🎉 El descuento se va a aplicar en tu próxima factura. Ya notificamos al área de administración. ¡Gracias por seguir con nosotros!" → FIN
 → Si rechaza o pide más descuento: "Entendemos. Un operador se va a comunicar con vos a la brevedad para ver cómo podemos ayudarte mejor. Gracias por habernos elegido. 🙏" → FIN
+
+CONTENIDO MULTIMEDIA:
+Si el usuario envía una imagen (por ejemplo, una captura de pantalla del sistema, un error, o cualquier referencia visual), interpretá lo que ves y respondé en el contexto de su solicitud de baja. Si no podés identificar el contenido, decilo: "No logro distinguir bien lo que muestra la imagen. ¿Podrías describirme qué querés mostrarme?"
+Si el usuario envía un documento PDF, leé su contenido y respondé en contexto.
+Si el usuario envía un mensaje de voz (recibirás la transcripción), respondé normalmente como si hubiera escrito ese texto.
+Nunca menciones aspectos técnicos del procesamiento interno.
 
 REGLAS:
 - Si el usuario dice que el descuento le parece poco o pide más, tratalo como rechazo y derivá al operador
@@ -214,8 +221,8 @@ function setEnabled(on){
   document.getElementById('sendBtn').disabled=!on;
 }
 
-async function callBot(userText){
-  history.push({role:'user',content:userText});
+async function callBot(userContent){
+  history.push({role:'user',content:userContent});
   showTyping();
   try{
     const resp=await fetch(PROXY_URL,{
@@ -231,13 +238,31 @@ async function callBot(userText){
   }catch(err){hideTyping();showErr('Sin conexión. Verificá tu red e intentá de nuevo.');history.pop();}
 }
 
+function addMediaMsg(from, att, caption){
+  const m=document.getElementById('messages');
+  const row=document.createElement('div');
+  row.className='msg-row '+from;
+  const isUser=from==='user';
+  row.innerHTML='<div class="msg-bubble">'+ChatMultimedia.bubbleHtml(att,caption,isUser)+'</div>';
+  m.appendChild(row);scrollBottom();
+}
+
 async function handleSend(){
   if(busy)return;
+  if(ChatMultimedia.isRecording())return;
   const inp=document.getElementById('chatInput');
-  const text=inp.value.trim();if(!text)return;
+  const text=inp.value.trim();
+  const att=ChatMultimedia.getAttachment();
+  if(!text&&!att)return;
   inp.value='';busy=true;setEnabled(false);
-  addMsg('user',text);
-  await callBot(text);
+  if(att){
+    addMediaMsg('user',att,text);
+  } else {
+    addMsg('user',text);
+  }
+  const content=ChatMultimedia.buildContent(text,att);
+  ChatMultimedia.clearAttachment();
+  await callBot(content);
   busy=false;setEnabled(true);inp.focus();
 }
 
@@ -256,6 +281,16 @@ function startChat(){
     setEnabled(true);document.getElementById('chatInput').focus();
   },1200);
 }
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  ChatMultimedia.init({
+    inputBar: document.querySelector('.wa-input'),
+    textInput: document.getElementById('chatInput'),
+    sendBtn: document.getElementById('sendBtn'),
+    lang: 'es-AR',
+    onAudioReady: ()=>{ handleSend(); }
+  });
+});
 
 function restartChat(){
   history=[];busy=false;
