@@ -34,6 +34,10 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
+    if (!response.ok) {
+      console.error('Anthropic API error:', response.status, JSON.stringify(data));
+    }
+
     return {
       statusCode: response.status,
       headers: { ...cors, 'Content-Type': 'application/json' },
@@ -41,10 +45,11 @@ exports.handler = async (event) => {
     };
 
   } catch (err) {
+    console.error('Proxy fetch error:', err.message);
     return {
       statusCode: 500,
       headers: { ...cors, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ error: { message: err.message, type: 'proxy_error' } })
     };
   }
 };

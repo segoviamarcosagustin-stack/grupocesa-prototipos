@@ -413,7 +413,7 @@ async function callApi(){
       })
     });
     const data = await res.json();
-    if(data.error) throw new Error(data.error.message || 'Error del servidor');
+    if(data.error){ console.error('API response:', res.status, data); throw new Error(data.error.message || 'Error del servidor'); }
     const reply = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
     history.push({ role:'assistant', content:reply });
     const delay = Math.min(2200, Math.max(600, reply.length * 10));
